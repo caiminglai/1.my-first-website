@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>职业解构管理 - 同物异名</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      color: #2d3436;
+    }
+    .back-link {
+      color: #636e72;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .back-link:hover {
+      background: #f1f2f6;
+      color: #2d3436;
+    }
+    .category-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .category-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 24px;
+      background: white;
+      color: #636e72;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .category-btn:hover {
+      background: #f8f9fa;
+      transform: translateY(-1px);
+    }
+    .category-btn.active {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+    }
+    .toolbar {
+      background: white;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+    }
+    .btn-secondary {
+      background: #f1f2f6;
+      color: #2d3436;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+    .btn-danger {
+      background: #ff7675;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #d63031;
+    }
+    .career-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 24px;
+    }
+    .career-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+    }
+    .career-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    .career-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .career-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d3436;
+    }
+    .career-category {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #ffeaa7;
+      color: #d63031;
+    }
+    .career-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .meta-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .badge-salary {
+      background: #dfe6e9;
+      color: #2d3436;
+    }
+    .badge-edu {
+      background: #dfe6e9;
+      color: #2d3436;
+    }
+    .badge-time {
+      background: #dfe6e9;
+      color: #2d3436;
+    }
+    .career-description {
+      color: #636e72;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .career-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f2f6;
+    }
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: #636e72;
+      grid-column: 1 / -1;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #636e72;
+      grid-column: 1 / -1;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-header h2 {
+      font-size: 24px;
+      color: #2d3436;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #636e72;
+      cursor: pointer;
+    }
+    .close-btn:hover {
+      color: #2d3436;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2d3436;
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #f093fb;
+    }
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #f1f2f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💼 职业解构管理</h1>
+      <a href="" class="back-link" onclick="window.location.href=API_BASE + '/admin'; return false;">← 返回管理后台</a>
+    </div>
+
+    <div class="category-nav" id="categoryNav">
+      <button class="category-btn active" onclick="selectCategory(null)">全部</button>
+      <button class="category-btn" onclick="selectCategory('芯片设计')">芯片设计</button>
+      <button class="category-btn" onclick="selectCategory('AI算法')">AI算法</button>
+      <button class="category-btn" onclick="selectCategory('软件系统')">软件系统</button>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="openAddModal()">+ 新增职业</button>
+      <button class="btn btn-secondary" onclick="exportCareersCSV()">导出 CSV</button>
+      <button class="btn btn-secondary" onclick="importCareersCSV()">导入 CSV</button>
+    </div>
+
+    <div class="career-grid" id="careerGrid">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 详情/编辑弹窗 -->
+  <div class="modal" id="careerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">新增职业</h2>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <form id="careerForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>ID</label>
+            <input type="text" id="careerId" placeholder="如 career001" required>
+          </div>，
+          <div class="form-group">
+            <label>分类</label>
+            <select id="category">
+              <option value="芯片设计">芯片设计</option>
+              <option value="AI算法">AI算法</option>
+              <option value="软件系统">软件系统</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>职业名称</label>
+          <input type="text" id="name" placeholder="职业名称" required>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>薪资</label>
+            <input type="text" id="salary" placeholder="如 20-40K">
+          </div>
+          <div class="form-group">
+            <label>学历</label>
+            <input type="text" id="education" placeholder="如 本科及以上">
+          </div>
+          <div class="form-group">
+            <label>学习周期</label>
+            <input type="text" id="duration" placeholder="如 6-12个月">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>描述</label>
+          <textarea id="description" placeholder="职业描述" style="min-height: 120px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>排序</label>
+          <input type="number" id="displayOrder" placeholder="0" min="0">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+          <button type="button" class="btn btn-danger" id="deleteBtn" onclick="deleteCareer()" style="display:none;">删除</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function _getBasePath() {
+      const pathname = window.location.pathname;
+      if (pathname.startsWith('/twym/') || pathname === '/twym') {
+        return '/twym';
+      }
+      if (pathname.split('/').includes('twym')) {
+        return '/twym';
+      }
+      return '';
+    }
+    const API_BASE = _getBasePath();
+    let ADMIN_TOKEN = localStorage.getItem('adminToken') || 'your_admin_password';
+    localStorage.setItem('adminToken', ADMIN_TOKEN);
+    let careers = [];
+    let currentCategory = null;
+
+    async function fetchCareers() {
+      const url = currentCategory 
+        ? `${API_BASE}/api/v1/career?category=${encodeURIComponent(currentCategory)}`
+        : `${API_BASE}/api/v1/career`;
+      const res = await fetch(url, {
+        headers: { 'x-admin-token': ADMIN_TOKEN }
+      });
+      const data = await res.json();
+      if (data.success) {
+        careers = data.data;
+        renderCareers();
+      }
+    }
+
+    function renderCareers() {
+      const grid = document.getElementById('careerGrid');
+      
+      if (careers.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <p>暂无职业数据</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = careers.map(career => `
+        <div class="career-card">
+          <div class="career-header">
+            <div class="career-title">${career.name || '无名称'}</div>
+            ${career.category ? `<span class="career-category">${career.category}</span>` : ''}
+          </div>
+          <div class="career-meta">
+            ${career.salary ? `<span class="meta-badge badge-salary">${career.salary}</span>` : ''}
+            ${career.education ? `<span class="meta-badge badge-edu">${career.education}</span>` : ''}
+            ${career.duration ? `<span class="meta-badge badge-time">${career.duration}</span>` : ''}
+          </div>
+          ${career.description ? `<div class="career-description">${career.description}</div>` : ''}
+          <div class="career-actions">
+            <button class="btn btn-primary" onclick="openEditModal('${career.id}')" style="flex:1;">编辑</button>
+            <button class="btn btn-danger" onclick="confirmDelete('${career.id}')" style="flex:1;">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectCategory(category) {
+      currentCategory = category;
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === (category || '全部'));
+      });
+      fetchCareers();
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = '新增职业';
+      document.getElementById('editId').value = '';
+      document.getElementById('careerId').value = '';
+      document.getElementById('careerId').disabled = false;
+      document.getElementById('category').value = '芯片设计';
+      document.getElementById('name').value = '';
+      document.getElementById('salary').value = '';
+      document.getElementById('education').value = '';
+      document.getElementById('duration').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('displayOrder').value = '0';
+      document.getElementById('deleteBtn').style.display = 'none';
+      document.getElementById('careerModal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const career = careers.find(c => c.id === id);
+      if (!career) return;
+      
+      document.getElementById('modalTitle').textContent = '编辑职业';
+      document.getElementById('editId').value = career.id;
+      document.getElementById('careerId').value = career.id;
+      document.getElementById('careerId').disabled = true;
+      document.getElementById('category').value = career.category || '芯片设计';
+      document.getElementById('name').value = career.name || '';
+      document.getElementById('salary').value = career.salary || '';
+      document.getElementById('education').value = career.education || '';
+      document.getElementById('duration').value = career.duration || '';
+      document.getElementById('description').value = career.description || '';
+      document.getElementById('displayOrder').value = career.display_order || 0;
+      document.getElementById('deleteBtn').style.display = 'inline-block';
+      document.getElementById('careerModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('careerModal').classList.remove('active');
+    }
+
+    async function saveCareer() {
+      const id = document.getElementById('careerId').value.trim();
+      const category = document.getElementById('category').value;
+      const name = document.getElementById('name').value.trim();
+      const salary = document.getElementById('salary').value.trim();
+      const education = document.getElementById('education').value.trim();
+      const duration = document.getElementById('duration').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const display_order = parseInt(document.getElementById('displayOrder').value) || 0;
+
+      if (!id || !name) {
+        alert('ID和名称不能为空');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/career`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': ADMIN_TOKEN
+          },
+          body: JSON.stringify({ id, category, name, salary, education, duration, description, display_order })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          fetchCareers();
+          alert('保存成功');
+        } else {
+          alert('保存失败: ' + (data.error?.message || '未知错误'));
+        }
+      } catch (err) {
+        alert('保存失败: ' + err.message);
+      }
+    }
+
+    async function deleteCareer() {
+      const id = document.getElementById('editId').value;
+      if (!confirm(`确定删除职业 ${id}？`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/career/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          fetchCareers();
+          alert('删除成功');
+        } else {
+          alert('删除失败');
+        }
+      } catch (err) {
+        alert('删除失败: ' + err.message);
+      }
+    }
+
+    function confirmDelete(id) {
+      if (!confirm(`确定删除职业 ${id}？`)) return;
+      document.getElementById('editId').value = id;
+      deleteCareer();
+    }
+
+    document.getElementById('careerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveCareer();
+    });
+
+    document.getElementById('careerModal').addEventListener('click', (e) => {
+      if (e.target.id === 'careerModal') {
+        closeModal();
+      }
+    });
+
+    // ===== CSV 导出 =====
+    async function exportCareersCSV() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/admin/career/export/csv`, {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        if (!res.ok) throw new Error('导出失败');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `career_${Date.now()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('导出失败：' + err.message);
+      }
+    }
+
+    // ===== CSV 导入 =====
+    async function importCareersCSV() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const content = ev.target.result;
+            const res = await fetch(`${API_BASE}/api/v1/admin/career/import/csv`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': ADMIN_TOKEN
+              },
+              body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              alert('导入成功！' + (data.data ? `共 ${data.data.total || data.data.success} 条` : ''));
+              fetchCareers();
+            } else {
+              alert('导入失败：' + (data.error || '未知错误'));
+            }
+          } catch (err) {
+            alert('导入失败：' + err.message);
+          }
+        };
+        reader.readAsText(file, 'UTF-8');
+      };
+      input.click();
+    }
+
+    fetchCareers();
+  </script>
+</body>
+</html>

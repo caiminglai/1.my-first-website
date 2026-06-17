@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>概念抗体管理 - 同物异名</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 24px 32px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      color: #2d3436;
+    }
+    .back-link {
+      color: #636e72;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .back-link:hover {
+      background: #f1f2f6;
+      color: #2d3436;
+    }
+    .toolbar {
+      background: white;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus {
+      border-color: #74b9ff;
+    }
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-secondary {
+      background: #f1f2f6;
+      color: #2d3436;
+    }
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+    .btn-danger {
+      background: #ff7675;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #d63031;
+    }
+    .antibody-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 24px;
+    }
+    .antibody-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      transition: all 0.3s;
+    }
+    .antibody-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    .antibody-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .antibody-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2d3436;
+    }
+    .antibody-category {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      background: #dfe6e9;
+      color: #636e72;
+    }
+    .antibody-term-id {
+      font-size: 13px;
+      color: #74b9ff;
+      margin-bottom: 12px;
+    }
+    .antibody-description {
+      color: #636e72;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .antibody-content {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 10px;
+      color: #2d3436;
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      max-height: 120px;
+      overflow: hidden;
+    }
+    .antibody-actions {
+      display: flex;
+      gap: 10px;
+      padding-top: 16px;
+      border-top: 1px solid #f1f2f6;
+    }
+    .loading {
+      text-align: center;
+      padding: 48px;
+      color: #636e72;
+      grid-column: 1 / -1;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #636e72;
+      grid-column: 1 / -1;
+    }
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .modal-header h2 {
+      font-size: 24px;
+      color: #2d3436;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #636e72;
+      cursor: pointer;
+    }
+    .close-btn:hover {
+      color: #2d3436;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      color: #2d3436;
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #74b9ff;
+    }
+    .form-group textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #f1f2f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>💡 概念抗体管理</h1>
+      <a href="" class="back-link" onclick="window.location.href=API_BASE + '/admin'; return false;">← 返回管理后台</a>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" class="search-input" placeholder="搜索术语 ID 或标题..." onkeydown="if(event.key==='Enter')fetchAntibodies()">
+      <button class="btn btn-primary" onclick="openAddModal()">+ 新增</button>
+      <button class="btn btn-secondary" onclick="exportAntibodiesCSV()">导出 CSV</button>
+      <button class="btn btn-secondary" onclick="importAntibodiesCSV()">导入 CSV</button>
+      <button class="btn btn-secondary" onclick="openTemplateModal()" style="background:linear-gradient(135deg,#D4853B,#E8A85A);color:#fff;border:none">AI 草稿模板</button>
+    </div>
+
+    <div class="antibody-grid" id="antibodyGrid">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 详情/编辑弹窗 -->
+  <div class="modal" id="antibodyModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">新增概念抗体</h2>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <form id="antibodyForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>ID</label>
+            <input type="text" id="antibodyId" placeholder="如 ca001" required>
+          </div>
+          <div class="form-group">
+            <label>关联词条ID</label>
+            <input type="text" id="termId" placeholder="关联的术语ID">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>标题</label>
+          <input type="text" id="title" placeholder="概念抗体标题" required>
+        </div>
+        <div class="form-group">
+          <label>分类</label>
+          <input type="text" id="category" placeholder="分类标签">
+        </div>
+        <div class="form-group">
+          <label>简述</label>
+          <textarea id="description" placeholder="简要描述"></textarea>
+        </div>
+        <div class="form-group">
+          <label>详细内容</label>
+          <textarea id="content" placeholder="详细解释内容" style="min-height: 200px;"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+          <button type="button" class="btn btn-danger" id="deleteBtn" onclick="deleteAntibody()" style="display:none;">删除</button>
+          <button type="submit" class="btn btn-primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AI 草稿模板弹窗 -->
+  <div class="modal" id="templateModal">
+    <div class="modal-content" style="max-width:720px">
+      <div class="modal-header">
+        <h2>选择 AI 草稿模板</h2>
+        <button class="close-btn" onclick="closeTemplateModal()">×</button>
+      </div>
+      <div style="padding:8px 24px 24px">
+        <p style="font-size:13px;color:#6B6B7B;margin-bottom:16px">选择一个模板快速填充编辑弹窗，方便你继续在此基础上润色。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div onclick="applyTemplate('academic')" style="cursor:pointer;background:#fff;border:2px solid #E5E2DA;border-radius:12px;padding:16px;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:22px;margin-bottom:6px">📚</div>
+            <div style="font-size:15px;font-weight:600;color:#1A1A2E;margin-bottom:6px">学术包装型</div>
+            <div style="font-size:12px;color:#6B6B7B;line-height:1.5">一个简单概念被学术化命名，用复杂术语包装常识</div>
+          </div>
+          <div onclick="applyTemplate('business')" style="cursor:pointer;background:#fff;border:2px solid #E5E2DA;border-radius:12px;padding:16px;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:22px;margin-bottom:6px">💼</div>
+            <div style="font-size:15px;font-weight:600;color:#1A1A2E;margin-bottom:6px">商业包装型</div>
+            <div style="font-size:12px;color:#6B6B7B;line-height:1.5">一个普通功能被营销术语包装，用高大上词汇提升价值</div>
+          </div>
+          <div onclick="applyTemplate('industry')" style="cursor:pointer;background:#fff;border:2px solid #E5E2DA;border-radius:12px;padding:16px;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:22px;margin-bottom:6px">🏭</div>
+            <div style="font-size:15px;font-weight:600;color:#1A1A2E;margin-bottom:6px">行业术语型</div>
+            <div style="font-size:12px;color:#6B6B7B;line-height:1.5">某个行业的普通操作被换名包装成专业化服务</div>
+          </div>
+          <div onclick="applyTemplate('political')" style="cursor:pointer;background:#fff;border:2px solid #E5E2DA;border-radius:12px;padding:16px;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:22px;margin-bottom:6px">🗳️</div>
+            <div style="font-size:15px;font-weight:600;color:#1A1A2E;margin-bottom:6px">政治话术型</div>
+            <div style="font-size:12px;color:#6B6B7B;line-height:1.5">政策宣传中的术语包装，用抽象表达替代真实含义</div>
+          </div>
+          <div onclick="applyTemplate('medical')" style="cursor:pointer;background:#fff;border:2px solid #E5E2DA;border-radius:12px;padding:16px;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:22px;margin-bottom:6px">🩺</div>
+            <div style="font-size:15px;font-weight:600;color:#1A1A2E;margin-bottom:6px">医疗包装型</div>
+            <div style="font-size:12px;color:#6B6B7B;line-height:1.5">普通生理现象被医学化命名，通过专业术语制造焦虑</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function _getBasePath() {
+      const pathname = window.location.pathname;
+      if (pathname.startsWith('/twym/') || pathname === '/twym') {
+        return '/twym';
+      }
+      if (pathname.split('/').includes('twym')) {
+        return '/twym';
+      }
+      return '';
+    }
+    const API_BASE = _getBasePath();
+    let ADMIN_TOKEN = localStorage.getItem('adminToken') || 'your_admin_password';
+    localStorage.setItem('adminToken', ADMIN_TOKEN);
+    let antibodies = [];
+
+    async function fetchAntibodies() {
+      const search = document.getElementById('searchInput').value;
+      const res = await fetch(`${API_BASE}/api/v1/antibody`, {
+        headers: { 'x-admin-token': ADMIN_TOKEN }
+      });
+      const data = await res.json();
+      if (data.success) {
+        antibodies = data.data;
+        if (search) {
+          antibodies = antibodies.filter(a => 
+            (a.id && a.id.toLowerCase().includes(search.toLowerCase())) ||
+            (a.title && a.title.toLowerCase().includes(search.toLowerCase())) ||
+            (a.term_id && a.term_id.toLowerCase().includes(search.toLowerCase()))
+          );
+        }
+        renderAntibodies();
+      }
+    }
+
+    function renderAntibodies() {
+      const grid = document.getElementById('antibodyGrid');
+      
+      if (antibodies.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>暂无概念抗体数据</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = antibodies.map(ab => `
+        <div class="antibody-card">
+          <div class="antibody-header">
+            <div class="antibody-title">${ab.title || '无标题'}</div>
+            ${ab.category ? `<span class="antibody-category">${ab.category}</span>` : ''}
+          </div>
+          ${ab.term_id ? `<div class="antibody-term-id">关联词条: ${ab.term_id}</div>` : ''}
+          ${ab.description ? `<div class="antibody-description">${ab.description}</div>` : ''}
+          ${ab.content ? `<div class="antibody-content">${ab.content}</div>` : ''}
+          <div class="antibody-actions">
+            <button class="btn btn-primary" onclick="openEditModal('${ab.id}')" style="flex:1;">编辑</button>
+            <button class="btn btn-danger" onclick="confirmDelete('${ab.id}')" style="flex:1;">删除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = '新增概念抗体';
+      document.getElementById('editId').value = '';
+      document.getElementById('antibodyId').value = '';
+      document.getElementById('antibodyId').disabled = false;
+      document.getElementById('termId').value = '';
+      document.getElementById('title').value = '';
+      document.getElementById('category').value = '';
+      document.getElementById('description').value = '';
+      document.getElementById('content').value = '';
+      document.getElementById('deleteBtn').style.display = 'none';
+      document.getElementById('antibodyModal').classList.add('active');
+    }
+
+    function openEditModal(id) {
+      const ab = antibodies.find(a => a.id === id);
+      if (!ab) return;
+      
+      document.getElementById('modalTitle').textContent = '编辑概念抗体';
+      document.getElementById('editId').value = ab.id;
+      document.getElementById('antibodyId').value = ab.id;
+      document.getElementById('antibodyId').disabled = true;
+      document.getElementById('termId').value = ab.term_id || '';
+      document.getElementById('title').value = ab.title || '';
+      document.getElementById('category').value = ab.category || '';
+      document.getElementById('description').value = ab.description || '';
+      document.getElementById('content').value = ab.content || '';
+      document.getElementById('deleteBtn').style.display = 'inline-block';
+      document.getElementById('antibodyModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('antibodyModal').classList.remove('active');
+    }
+
+    async function saveAntibody() {
+      const id = document.getElementById('antibodyId').value.trim();
+      const term_id = document.getElementById('termId').value.trim();
+      const title = document.getElementById('title').value.trim();
+      const category = document.getElementById('category').value.trim();
+      const description = document.getElementById('description').value.trim();
+      const content = document.getElementById('content').value.trim();
+
+      if (!id || !title) {
+        alert('ID和标题不能为空');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/antibody`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': ADMIN_TOKEN
+          },
+          body: JSON.stringify({ id, term_id, title, category, description, content })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          fetchAntibodies();
+          alert('保存成功');
+        } else {
+          alert('保存失败: ' + (data.error?.message || '未知错误'));
+        }
+      } catch (err) {
+        alert('保存失败: ' + err.message);
+      }
+    }
+
+    async function deleteAntibody() {
+      const id = document.getElementById('editId').value;
+      if (!confirm(`确定删除概念抗体 ${id}？`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/antibody/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal();
+          fetchAntibodies();
+          alert('删除成功');
+        } else {
+          alert('删除失败');
+        }
+      } catch (err) {
+        alert('删除失败: ' + err.message);
+      }
+    }
+
+    function confirmDelete(id) {
+      if (!confirm(`确定删除概念抗体 ${id}？`)) return;
+      document.getElementById('editId').value = id;
+      deleteAntibody();
+    }
+
+    document.getElementById('antibodyForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      saveAntibody();
+    });
+
+    document.getElementById('antibodyModal').addEventListener('click', (e) => {
+      if (e.target.id === 'antibodyModal') {
+        closeModal();
+      }
+    });
+
+    // ===== CSV 导出 =====
+    async function exportAntibodiesCSV() {
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/admin/antibody/export/csv`, {
+          headers: { 'x-admin-token': ADMIN_TOKEN }
+        });
+        if (!res.ok) throw new Error('导出失败');
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `antibody_${Date.now()}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('导出失败：' + err.message);
+      }
+    }
+
+    // ===== CSV 导入 =====
+    async function importAntibodiesCSV() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const content = ev.target.result;
+            const res = await fetch(`${API_BASE}/api/v1/admin/antibody/import/csv`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-admin-token': ADMIN_TOKEN
+              },
+              body: JSON.stringify({ content })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              alert('导入成功！' + (data.data ? `共 ${data.data.total || data.data.success} 条` : ''));
+              fetchAntibodies();
+            } else {
+              alert('导入失败：' + (data.error || '未知错误'));
+            }
+          } catch (err) {
+            alert('导入失败：' + err.message);
+          }
+        };
+        reader.readAsText(file, 'UTF-8');
+      };
+      input.click();
+    }
+
+    // ========== AI 草稿模板 ==========
+    function openTemplateModal() {
+      document.getElementById('templateModal').classList.add('active');
+    }
+
+    function closeTemplateModal() {
+      document.getElementById('templateModal').classList.remove('active');
+    }
+
+    // 点击模板弹窗外部关闭
+    document.addEventListener('DOMContentLoaded', () => {
+      const tmplModal = document.getElementById('templateModal');
+      if (tmplModal) {
+        tmplModal.addEventListener('click', (e) => {
+          if (e.target.id === 'templateModal') {
+            closeTemplateModal();
+          }
+        });
+      }
+    });
+
+    function applyTemplate(type) {
+      const templates = {
+        academic: {
+          title: '学术包装型 —— 用复杂术语包装一个简单概念',
+          category: '学术包装',
+          description: '症状：某一简单概念被赋予冗长、晦涩的学术名称，让读者产生"这很高深"的错觉。\n\n本质：本质仍是那个简单概念，只是用更复杂的术语进行了包装。\n\n类比：就像把"走路"改称为"人体自主位移工程"，功能没有变化，包装变复杂了。\n\n处理方式：回到事物本身，用一句话概括它在做什么。如果用大白话讲出来会显得平庸，那往往就是包装。',
+          content: '详细说明：\n1. 原术语是什么（学术命名）\n2. 它真实对应的简单概念是什么\n3. 这种包装为何产生（学术炒作 / 学科壁垒 / 营销目的）\n4. 如何在阅读中识破——当遇到过于冗长、组合新词的术语时，用一句话替换它的主语。'
+        },
+        business: {
+          title: '商业包装型 —— 用营销语言提升普通功能的价值感',
+          category: '商业包装',
+          description: '症状：一个普通的产品/功能被冠以"智慧""智能""一体化""云""生态"等营销前缀，让人误以为是重大创新。\n\n本质：本质仍是一个普通的功能或服务，只是通过语言包装提升了感知价值。\n\n类比：把"外卖送餐"改称为"本地生活一体化解决方案"。\n\n处理方式：剥离所有形容词和营销词汇，看剩下的核心功能是什么。如果它本质上只是你已经在做的事，那就是包装。',
+          content: '详细说明：\n1. 包装后的商业术语\n2. 拆解后真实在做的事\n3. 包装的常见目的（定价 / 融资叙事 / 制造焦虑）\n4. 一个反向验证小练习：如果去掉所有形容词，剩下的东西你是否理解'
+        },
+        industry: {
+          title: '行业术语型 —— 某个行业的普通操作被专业化命名',
+          category: '行业术语',
+          description: '症状：某个行业内部的日常操作、流程被换名为看起来高度专业化的术语，形成行业壁垒。\n\n本质：本质还是那个普通操作，只是用一套新词汇将其标准化、专业化。\n\n类比：把"整理文件"改称为"文档生命周期管理"。\n\n处理方式：寻找术语在普通语言中的等价表达。当你发现换用日常词汇后意义完全一致，那就是包装型术语。',
+          content: '详细说明：\n1. 行业术语原文\n2. 普通语言的等价表达\n3. 该术语可能的真实用途（沟通效率 / 建立专业壁垒 / 区分内行外行）\n4. 入门建议：当发现一个行业大量使用自造词，先理解它最朴素的等价表达'
+        },
+        political: {
+          title: '政治话术型 —— 用抽象表达替代具体政策含义',
+          category: '政治话术',
+          description: '症状：政策宣传中使用空洞、抽象的表达，如"结构性""协同""攻坚""赋能""顶层设计"等，含义在不同语境下可被灵活解读。\n\n本质：用抽象语言替代具体含义，以便灵活表达或降低承诺清晰度。\n\n类比：把"我们暂时没钱"改称为"我们正在进行阶段性战略重构"。\n\n处理方式：追问——这句话在你的生活中具体意味着什么？它会带来什么具体变化？如果无法翻译成具体行动，就是话术。',
+          content: '详细说明：\n1. 话术原表达\n2. 它可能的真实含义（多个候选翻译）\n3. 这类话术常见的使用场景\n4. 识别建议：关注能否翻译为具体动作；若不能，它很可能只是话术'
+        },
+        medical: {
+          title: '医疗包装型 —— 普通生理现象被医学化命名',
+          category: '医疗包装',
+          description: '症状：常见的生理/心理现象（疲劳、情绪波动、注意力不集中等）被冠以听起来严重的医学名称，制造焦虑以促进消费。\n\n本质：本质仍是一个普通的生理/心理体验，只是通过医学化包装使其显得需要干预。\n\n类比：把"最近有点累"改称为"慢性疲劳综合征候群"。\n\n处理方式：关注症状是否影响正常生活、是否有器质性依据。如果只是生活状态的医学化命名，通常就是包装。',
+          content: '详细说明：\n1. 包装后的医学术语\n2. 它真实描述的普通体验\n3. 包装的常见目的（产品推销 / 制造焦虑 / 扩大市场）\n4. 应对建议：关注功能性影响，而非标签本身；当怀疑时咨询多位独立医生'
+        }
+      };
+
+      const t = templates[type];
+      if (!t) return;
+
+      document.getElementById('modalTitle').textContent = '新增概念抗体';
+      document.getElementById('editId').value = '';
+      document.getElementById('antibodyId').value = '';
+      document.getElementById('antibodyId').disabled = false;
+      document.getElementById('termId').value = '';
+      document.getElementById('title').value = t.title;
+      document.getElementById('category').value = t.category;
+      document.getElementById('description').value = t.description;
+      document.getElementById('content').value = t.content;
+      document.getElementById('deleteBtn').style.display = 'none';
+
+      closeTemplateModal();
+      document.getElementById('antibodyModal').classList.add('active');
+    }
+
+    fetchAntibodies();
+  </script>
+</body>
+</html>

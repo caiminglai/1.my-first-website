@@ -1,0 +1,2655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同物异名 - 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",PingFang SC,Hiragino Sans GB,"Microsoft YaHei",sans-serif;background:#F7F5F0;color:#1A1A2E;min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+header{background:#1A1A2E;color:#F7F5F0;padding:20px 0;margin-bottom:24px}
+header h1{font-size:22px;text-align:center}
+header p{font-size:13px;text-align:center;color:#A0A0B0;margin-top:4px}
+
+/* 登录 */
+.login-box{max-width:400px;margin:80px auto;background:#fff;padding:40px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.login-box h2{font-size:20px;margin-bottom:24px;text-align:center;color:#1A1A2E}
+.login-box input{width:100%;padding:14px 16px;border:2px solid #E5E2DA;border-radius:12px;font-size:15px;margin-bottom:16px;outline:none}
+.login-box input:focus{border-color:#D4853B}
+.login-box button{width:100%;padding:14px;background:linear-gradient(135deg,#D4853B,#E8A85C);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer}
+.login-box button:hover{opacity:0.9}
+.login-box .hint{font-size:12px;color:#A0A0B0;margin-top:12px;text-align:center;line-height:1.6}
+
+/* 标签页 */
+.tabs{display:flex;gap:4px;margin-bottom:24px;background:#fff;padding:4px;border-radius:12px;border:1px solid #E5E2DA}
+.tab{flex:1;padding:10px 16px;border:none;background:transparent;border-radius:8px;font-size:14px;color:#6B6B7B;cursor:pointer;font-weight:500}
+.tab.active{background:#1A1A2E;color:#F7F5F0}
+.tab:hover:not(.active){color:#1A1A2E;background:#F7F5F0}
+
+/* 统计卡片 */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;padding:20px;border-radius:12px;border:1px solid #E5E2DA}
+.stat-card .number{font-size:32px;font-weight:700;color:#D4853B}
+.stat-card .label{font-size:13px;color:#6B6B7B;margin-top:4px}
+
+/* 搜索栏 */
+.toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.toolbar input,.toolbar select{padding:10px 14px;border:1px solid #E5E2DA;border-radius:10px;font-size:14px;outline:none;background:#fff}
+.toolbar input:focus,.toolbar select:focus{border-color:#D4853B}
+.toolbar input{flex:1;min-width:200px}
+.toolbar button{padding:10px 20px;background:#1A1A2E;color:#F7F5F0;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500}
+.toolbar button:hover{background:#2a2a3e}
+.toolbar button.secondary{background:#D4853B}
+.toolbar button.secondary:hover{background:#c47835}
+
+/* 搜索建议下拉框 */
+.search-suggestions{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #E5E2DA;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:50;max-height:300px;overflow-y:auto;display:none}
+.search-suggestions.show{display:block}
+.suggestion-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid #F7F5F0}
+.suggestion-item:hover{background:#F7F5F0}
+.suggestion-item:last-child{border-bottom:none}
+.suggestion-term{font-weight:500;color:#1A1A2E}
+.suggestion-translation{font-size:12px;color:#6B6B7B;margin-top:2px}
+
+/* 表格 */
+.table-wrap{background:#fff;border-radius:12px;border:1px solid #E5E2DA;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:#F7F5F0;padding:12px 16px;text-align:left;font-weight:600;color:#1A1A2E;font-size:13px;white-space:nowrap}
+td{padding:12px 16px;border-top:1px solid #E5E2DA;color:#6B6B7B}
+tr:hover td{background:#F7F5F0}
+.hot-badge{display:inline-block;padding:2px 8px;background:#D4853B15;color:#D4853B;font-size:11px;border-radius:4px}
+.disc-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px}
+.btn-icon{padding:4px 10px;border:1px solid #E5E2DA;background:#fff;border-radius:6px;font-size:12px;cursor:pointer;color:#6B6B7B;margin-right:4px}
+.btn-icon:hover{border-color:#D4853B;color:#D4853B}
+.btn-icon.delete:hover{border-color:#e74c3c;color:#e74c3c}
+
+/* 分页 */
+.pagination{display:flex;justify-content:center;gap:4px;margin-top:20px}
+.pagination button{padding:8px 14px;border:1px solid #E5E2DA;background:#fff;border-radius:8px;font-size:13px;cursor:pointer;color:#6B6B7B}
+.pagination button:hover{border-color:#D4853B;color:#D4853B}
+.pagination button:disabled{opacity:0.4;cursor:not-allowed}
+.pagination button.active{background:#1A1A2E;color:#F7F5F0;border-color:#1A1A2E}
+
+/* 弹窗 */
+.modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-content{background:#fff;width:90%;max-width:600px;max-height:85vh;border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.modal-header{padding:20px 24px;border-bottom:1px solid #E5E2DA;display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:16px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#A0A0B0}
+.modal-close:hover{color:#1A1A2E}
+.modal-body{padding:24px;overflow-y:auto}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#1A1A2E;margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:12px 14px;border:1px solid #E5E2DA;border-radius:10px;font-size:14px;outline:none;font-family:inherit}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:#D4853B}
+.form-group textarea{min-height:80px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.modal-footer{padding:16px 24px;border-top:1px solid #E5E2DA;display:flex;gap:8px;justify-content:flex-end}
+.modal-footer button{padding:10px 20px;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:500}
+.btn-primary{background:#1A1A2E;color:#F7F5F0}
+.btn-primary:hover{background:#2a2a3e}
+.btn-cancel{background:#F7F5F0;color:#6B6B7B}
+.btn-cancel:hover{background:#E5E2DA}
+
+/* 提示 */
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;background:#1A1A2E;color:#F7F5F0;border-radius:10px;font-size:14px;z-index:200;animation:slideIn 0.3s ease}
+.toast.success{background:#27ae60}
+.toast.error{background:#e74c3c}
+.toast.auto-save{background:#ffffffaa;color:#D4853B;font-size:12px;padding:8px 14px;border:1px solid #D4853B66;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+
+/* 退出登录按钮 */
+.logout-btn{position:absolute;right:0;top:50%;transform:translateY(-50%);background:transparent;border:1px solid #F7F5F0;color:#F7F5F0;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.2s}
+.logout-btn:hover{background:#F7F5F0;color:#1A1A2E}
+
+/* 导出预览弹窗专用样式 */
+.export-preview .modal-content{max-width:1100px}
+.column-selector{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;padding:14px;background:#F7F5F0;border-radius:10px}
+.column-selector label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid #E5E2DA;border-radius:8px;font-size:13px;cursor:pointer;color:#1A1A2E;transition:all 0.15s}
+.column-selector label:hover{border-color:#D4853B}
+.column-selector input[type="checkbox"]{cursor:pointer}
+.column-actions{margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.column-actions button{padding:8px 14px;background:#fff;border:1px solid #E5E2DA;border-radius:8px;font-size:13px;cursor:pointer;color:#6B6B7B}
+.column-actions button:hover{border-color:#D4853B;color:#D4853B}
+.preview-summary{padding:10px 14px;background:#D4853B15;border-radius:8px;margin-bottom:12px;font-size:13px;color:#D4853B;font-weight:500}
+.preview-table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.preview-table th{background:#1A1A2E;color:#F7F5F0;padding:10px 12px;text-align:left;font-weight:600;white-space:nowrap;position:sticky;top:0}
+.preview-table td{padding:10px 12px;border-top:1px solid #E5E2DA;color:#6B6B7B;vertical-align:top;word-wrap:break-word}
+.preview-table tr:hover td{background:#F7F5F0}
+.preview-table td.hot-col{color:#D4853B;font-weight:500}
+.preview-scroll{max-height:360px;overflow:auto;border:1px solid #E5E2DA;border-radius:10px}
+.auto-save-status{font-size:12px;color:#9B9BAB;text-align:right;padding:6px 24px;min-height:22px}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* 空状态 */
+.empty{text-align:center;padding:60px 20px;color:#A0A0B0}
+.empty svg{width:48px;height:48px;margin-bottom:12px;opacity:0.3}
+
+/* 响应式 */
+@media(max-width:768px){
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+.form-row{grid-template-columns:1fr}
+.toolbar input{min-width:100%}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- 登录页 -->
+<div id="loginPage" class="login-box">
+  <h2>管理后台登录</h2>
+  <input type="password" id="tokenInput" placeholder="输入管理员 Token" onkeydown="if(event.key==='Enter')doLogin()">
+  <button onclick="doLogin()">进入管理后台</button>
+  <p class="hint">
+    Token 在服务器 .env 文件的 ADMIN_TOKEN 中设置<br>
+    默认没有设置，需要先配置才能登录
+  </p>
+</div>
+
+<!-- 管理页 -->
+<div id="adminPage" style="display:none">
+  <header>
+    <div class="container" style="position:relative">
+      <h1>同物异名 - 管理后台</h1>
+      <p id="serverInfo">已连接后端</p>
+      <button onclick="doLogout()" class="logout-btn" title="退出登录">退出</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- 标签页 -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('dashboard')" data-tab="dashboard">统计面板</button>
+      <button class="tab" onclick="switchTab('disciplines')" data-tab="disciplines">学科管理</button>
+      <button class="tab" onclick="switchTab('terms')" data-tab="terms">词条管理</button>
+      <button class="tab" onclick="switchTab('submissions')" data-tab="submissions">提交审核</button>
+      <button class="tab" onclick="switchTab('comparisons')" data-tab="comparisons">对比管理</button>
+      <button class="tab" onclick="switchTab('backup')" data-tab="backup">数据备份</button>
+    </div>
+
+    <!-- 统计面板 -->
+    <div id="tab-dashboard" class="tab-content">
+      <div style="margin-bottom:24px">
+        <h3 style="margin-bottom:12px;font-size:16px">快捷管理</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button onclick="window.location.href=API_BASE + '/admin/antibody'" style="flex:1;min-width:200px;padding:20px;background:#fff;border:1px solid #E5E2DA;border-radius:12px;cursor:pointer;text-align:left;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:24px;margin-bottom:8px">💡</div>
+            <div style="font-weight:600;color:#1A1A2E">概念抗体管理</div>
+            <div style="font-size:13px;color:#6B6B7B;margin-top:4px">管理和编辑概念抗体</div>
+          </button>
+          <button onclick="window.location.href=API_BASE + '/admin/career'" style="flex:1;min-width:200px;padding:20px;background:#fff;border:1px solid #E5E2DA;border-radius:12px;cursor:pointer;text-align:left;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:24px;margin-bottom:8px">💼</div>
+            <div style="font-weight:600;color:#1A1A2E">职业解构管理</div>
+            <div style="font-size:13px;color:#6B6B7B;margin-top:4px">管理和编辑职业解构</div>
+          </button>
+          <button onclick="window.location.href=API_BASE + '/admin/jobs'" style="flex:1;min-width:200px;padding:20px;background:#fff;border:1px solid #E5E2DA;border-radius:12px;cursor:pointer;text-align:left;transition:all 0.2s" onmouseover="this.style.borderColor='#D4853B';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E5E2DA';this.style.transform='translateY(0)'">
+            <div style="font-size:24px;margin-bottom:8px">🏭</div>
+            <div style="font-weight:600;color:#1A1A2E">岗位拆解管理</div>
+            <div style="font-size:13px;color:#6B6B7B;margin-top:4px">管理和编辑高薪技术岗</div>
+          </button>
+        </div>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- 数据质量板块 -->
+      <div style="margin-top:24px;background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:18px">🛡️</span>
+            <h3 style="font-size:16px;color:#1A1A2E;margin:0">数据质量</h3>
+          </div>
+          <button onclick="loadDataQuality()" style="padding:8px 16px;background:#1A1A2E;color:#fff;border:none;border-radius:10px;font-size:13px;cursor:pointer;font-weight:500" onmouseover="this.style.background='#2a2a3e'" onmouseout="this.style.background='#1A1A2E'">刷新质量报告</button>
+        </div>
+        <div id="dataQualityContent" style="color:#6B6B7B;font-size:13px">加载中...</div>
+      </div>
+
+      <h3 style="margin:20px 0 12px;font-size:16px">学科分布</h3>
+      <div id="disciplineChart" style="background:#fff;border-radius:12px;padding:20px;border:1px solid #E5E2DA"></div>
+    </div>
+
+    <!-- 学科管理 -->
+    <div id="tab-disciplines" class="tab-content" style="display:none">
+      <div class="toolbar">
+        <button class="secondary" onclick="openAddDisciplineModal()">+ 新增学科</button>
+        <button onclick="saveDisciplineOrder()">保存排序</button>
+      </div>
+      <p style="font-size:13px;color:#6B6B7B;margin-bottom:16px">拖拽学科行可调整显示顺序，点击保存排序后生效</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px">排序</th>
+              <th>标识</th>
+              <th>名称</th>
+              <th>颜色</th>
+              <th>词条数</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="disciplinesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 词条管理 -->
+    <div id="tab-terms" class="tab-content" style="display:none">
+      <div class="toolbar" style="position:relative">
+        <input type="text" id="searchInput" placeholder="搜索词条 ID 或名称..." onkeydown="if(event.key==='Enter')loadTerms()" oninput="showSearchSuggestions()">
+        <div id="searchSuggestions" class="search-suggestions"></div>
+        <div class="select-wrapper">
+          <select id="disciplineFilter" onchange="handleDisciplineChange()">
+            <option value="">全部学科</option>
+            <option value="math">数学</option>
+            <option value="cs">计算机</option>
+            <option value="econ">经济学</option>
+            <option value="med">医学/心理</option>
+            <option value="law">法律/政策</option>
+            <option value="cyber">控制论</option>
+            <option value="cross">跨学科</option>
+            <option value="physics">物理学</option>
+            <option value="chem">化学</option>
+            <option value="bio">生物学</option>
+            <option value="add-new">+ 新增学科</option>
+          </select>
+        </div>
+        <button onclick="loadTerms()">搜索</button>
+        <button class="secondary" onclick="openEditModal()">+ 新增词条</button>
+        <button class="secondary" onclick="openBatchImportModal()">批量导入</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>学科</th>
+              <th>术语</th>
+              <th>人话翻译</th>
+              <th style="width:80px">热门</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="termsTable"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+
+    <!-- 提交审核 -->
+    <div id="tab-submissions" class="tab-content" style="display:none">
+      <div class="stats-grid" id="submissionsStats"></div>
+      <div class="toolbar" style="margin-top:20px">
+        <button onclick="loadSubmissions()">刷新列表</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>类型</th>
+              <th>名称/术语</th>
+              <th>学科</th>
+              <th>翻译/说明预览</th>
+              <th>状态</th>
+              <th style="width:180px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="submissionsTable"></tbody>
+        </table>
+      </div>
+      <div id="submissionsEmpty" style="display:none" class="empty">暂无待审核提交</div>
+    </div>
+
+    <!-- 对比管理 -->
+    <div id="tab-comparisons" class="tab-content" style="display:none">
+      <div class="toolbar">
+        <button class="secondary" onclick="openComparisonModal()">+ 新建对比</button>
+        <button onclick="loadComparisons()">刷新</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>标题</th>
+              <th>概念 A</th>
+              <th>概念 B</th>
+              <th>摘要</th>
+              <th style="width:180px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonsTable"></tbody>
+        </table>
+      </div>
+      <div id="comparisonsEmpty" style="display:none" class="empty">暂无对比数据，点击"新建对比"添加</div>
+    </div>
+
+    <!-- 数据备份 -->
+    <div id="tab-backup" class="tab-content" style="display:none">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="number" id="backupCount">-</div>
+          <div class="label">备份文件数</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="secondary" onclick="doBackup()">立即备份</button>
+        <div style="flex:1;display:flex;justify-content:flex-end;align-items:center;gap:10px">
+          <select id="exportDiscipline" style="padding:10px 14px;border:1px solid #E5E2DA;border-radius:10px;font-size:14px">
+            <option value="">全部学科</option>
+          </select>
+          <button class="secondary" onclick="exportTermsCSV()">导出词条 CSV</button>
+          <button class="secondary" onclick="importTermsCSV()">导入词条 CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>文件名</th><th>大小</th><th>日期</th></tr>
+          </thead>
+          <tbody id="backupTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 概念抗体管理 -->
+    <div id="tab-concept-antibodies" class="tab-content" style="display:none">
+      <div class="toolbar">
+        <button class="secondary" onclick="openConceptAntibodyModal()">+ 新增概念抗体</button>
+        <button class="secondary" onclick="exportAntibodiesCSV()">导出 CSV</button>
+        <button class="secondary" onclick="importAntibodiesCSV()">批量导入 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>词条ID</th>
+              <th>标题</th>
+              <th>分类</th>
+              <th>描述</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="conceptAntibodiesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 职业解构管理 -->
+    <div id="tab-career-deconstruction" class="tab-content" style="display:none">
+      <div class="toolbar">
+        <button class="secondary" onclick="openCareerModal()">+ 新增职业</button>
+        <button class="secondary" onclick="exportCareerCSV()">导出 CSV</button>
+        <button class="secondary" onclick="importCareerCSV()">批量导入 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>分类</th>
+              <th>职业名称</th>
+              <th>薪资</th>
+              <th>学历</th>
+              <th>学习周期</th>
+              <th>排序</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="careerTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 岗位拆解管理 -->
+    <div id="tab-industry-deconstruction" class="tab-content" style="display:none">
+      <div class="toolbar">
+        <button class="secondary" onclick="openIndustryModal()">+ 新增产业/岗位</button>
+        <button class="secondary" onclick="exportJobsCSV()">导出 CSV</button>
+        <button class="secondary" onclick="importJobsCSV()">批量导入 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名称</th>
+              <th>描述</th>
+              <th>核心描述</th>
+              <th>排序</th>
+              <th style="width:120px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="industryTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- 提交详情弹窗 -->
+<div id="submissionDetailModal" class="modal">
+  <div class="modal-content" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="submissionDetailTitle">提交详情</h3>
+      <button class="modal-close" onclick="closeSubmissionDetailModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="submissionDetailBody" style="max-height:70vh;overflow-y:auto"></div>
+    <div class="modal-footer" id="submissionDetailFooter"></div>
+  </div>
+</div>
+
+<!-- 批量导入弹窗 -->
+<div id="batchImportModal" class="modal">
+  <div class="modal-content" style="max-width:800px">
+    <div class="modal-header">
+      <h3>批量导入词条（CSV）</h3>
+      <button class="modal-close" onclick="closeBatchImportModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>上传 CSV 文件</label>
+        <input type="file" id="batchImportFile" accept=".csv,.txt" onchange="onBatchFileSelected()" style="width:100%;padding:10px;border:1px solid #E5E2DA;border-radius:10px;font-size:14px;background:#fff">
+        <p style="font-size:12px;color:#9B9BAB;margin-top:6px">
+          <a href="javascript:downloadImportTemplate()" style="color:#D4853B;text-decoration:underline">点此下载 CSV 模板</a>
+          ，用 Excel 编辑后保存为 .csv UTF-8 格式上传
+        </p>
+      </div>
+      <div class="form-group" id="batchImportPreviewGroup" style="display:none">
+        <label>已加载数据预览（前 3 行）</label>
+        <div id="batchImportPreview" style="background:#F7F5F0;padding:12px;border-radius:10px;font-size:12px;white-space:pre-wrap;max-height:200px;overflow:auto;color:#6B6B7B"></div>
+      </div>
+      <div class="form-group">
+        <label>格式说明</label>
+        <p style="font-size:13px;color:#6B6B7B;line-height:1.8">
+          - <strong>CSV 列名</strong>：词条ID、学科、术语名称、人话翻译、本质解释、防忽悠提示、热门标记<br>
+          - <strong>学科值</strong>：使用学科管理中的学科标识（如 math / cs / econ 等）<br>
+          - <strong>热门标记</strong>：填 "是" 或 "1" 即标记为热门，其他值或留空为否
+        </p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeBatchImportModal()">取消</button>
+      <button class="btn-primary" onclick="doBatchImport()">导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新增学科弹窗 -->
+<div id="addDisciplineModal" class="modal">
+  <div class="modal-content" style="max-width:500px">
+    <div class="modal-header">
+      <h3>新增学科</h3>
+      <button class="modal-close" onclick="closeAddDisciplineModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>学科标识（英文）</label>
+        <input type="text" id="disciplineKey" placeholder="如: physics, biology">
+        <p style="font-size:12px;color:#9B9BAB;margin-top:4px">只能包含小写字母和下划线</p>
+      </div>
+      <div class="form-group">
+        <label>学科名称（中文）</label>
+        <input type="text" id="disciplineName" placeholder="如: 物理学, 生物学">
+      </div>
+      <div class="form-group">
+        <label>学科颜色</label>
+        <input type="color" id="disciplineColor" value="#6B7B5E">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddDisciplineModal()">取消</button>
+      <button class="btn-primary" onclick="saveDiscipline()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑弹窗 -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">编辑词条</h3>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>词条ID</label>
+          <input type="text" id="editId" placeholder="如 m001, c001">
+        </div>
+        <div class="form-group">
+          <label>学科</label>
+          <select id="editDiscipline"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>术语名称</label>
+        <input type="text" id="editName" placeholder="专业术语">
+      </div>
+      <div class="form-group">
+        <label>人话翻译</label>
+        <input type="text" id="editTranslation" placeholder="用大白话解释">
+      </div>
+      <div class="form-group">
+        <label>本质解释</label>
+        <textarea id="editEssence" placeholder="详细说明这个术语的本质是什么"></textarea>
+      </div>
+      <div class="form-group">
+        <label>防忽悠提示</label>
+        <textarea id="editTip" placeholder="一句话教用户怎么不被这个术语忽悠"></textarea>
+      </div>
+      <div class="form-group">
+        <label>
+          <input type="checkbox" id="editHot"> 标记为热门
+        </label>
+      </div>
+    </div>
+    <div class="auto-save-status" id="autoSaveStatus"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditModal()">取消</button>
+      <button class="btn-primary" onclick="saveTerm()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 历史版本弹窗 -->
+<div id="historyModal" class="modal">
+  <div class="modal-content" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="historyTitle">变更历史</h3>
+      <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="historyBody" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closeHistoryModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 概念抗体编辑弹窗 -->
+<div id="conceptAntibodyModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="conceptAntibodyTitle">编辑概念抗体</h3>
+      <button class="modal-close" onclick="closeConceptAntibodyModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID</label>
+          <input type="text" id="caId" placeholder="如 ca001">
+        </div>
+        <div class="form-group">
+          <label>词条ID</label>
+          <input type="text" id="caTermId" placeholder="关联的词条ID">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>标题</label>
+        <input type="text" id="caTitle" placeholder="概念抗体标题">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>分类</label>
+          <input type="text" id="caCategory" placeholder="分类">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="caDescription" placeholder="描述" style="min-height:80px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>内容</label>
+        <textarea id="caContent" placeholder="详细内容" style="min-height:120px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConceptAntibodyModal()">取消</button>
+      <button class="btn-primary" onclick="saveConceptAntibody()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 职业解构编辑弹窗 -->
+<div id="careerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="careerTitle">编辑职业</h3>
+      <button class="modal-close" onclick="closeCareerModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID</label>
+          <input type="text" id="careerId" placeholder="如 career001">
+        </div>
+        <div class="form-group">
+          <label>分类</label>
+          <select id="careerCategory">
+            <option value="芯片设计">芯片设计</option>
+            <option value="AI算法">AI算法</option>
+            <option value="软件系统">软件系统</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>职业名称</label>
+        <input type="text" id="careerName" placeholder="职业名称">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>薪资</label>
+          <input type="text" id="careerSalary" placeholder="如 20-40K">
+        </div>
+        <div class="form-group">
+          <label>学历</label>
+          <input type="text" id="careerEducation" placeholder="如 本科及以上">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>学习周期</label>
+          <input type="text" id="careerDuration" placeholder="如 6-12个月">
+        </div>
+        <div class="form-group">
+          <label>排序</label>
+          <input type="number" id="careerDisplayOrder" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="careerDescription" placeholder="职业描述" style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCareerModal()">取消</button>
+      <button class="btn-primary" onclick="saveCareer()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 岗位拆解编辑弹窗 -->
+<div id="industryModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="industryTitle">编辑产业/岗位</h3>
+      <button class="modal-close" onclick="closeIndustryModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>ID</label>
+          <input type="text" id="industryId" placeholder="如 industry001">
+        </div>
+        <div class="form-group">
+          <label>排序</label>
+          <input type="number" id="industryDisplayOrder" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>名称</label>
+        <input type="text" id="industryName" placeholder="产业/岗位名称">
+      </div>
+      <div class="form-group">
+        <label>核心描述</label>
+        <textarea id="industryCoreDesc" placeholder="核心描述" style="min-height:80px"></textarea>
+      </div>
+      <div class="form-group">
+        <label>描述</label>
+        <textarea id="industryDescription" placeholder="详细描述" style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeIndustryModal()">取消</button>
+      <button class="btn-primary" onclick="saveIndustry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 对比编辑弹窗 -->
+<div id="comparisonModal" class="modal">
+  <div class="modal-content" style="max-width:900px">
+    <div class="modal-header">
+      <h3 id="comparisonModalTitle">新建对比</h3>
+      <button class="modal-close" onclick="closeComparisonModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>标题</label>
+        <input type="text" id="cmpTitle" placeholder="如：相关性 vs 因果性">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>概念 A - 名称</label>
+          <input type="text" id="cmpA_name" placeholder="概念 A 名称">
+        </div>
+        <div class="form-group">
+          <label>概念 A - 学科</label>
+          <input type="text" id="cmpA_discipline" placeholder="如 stats / cs / econ">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>概念 A - 人话翻译</label>
+        <input type="text" id="cmpA_plain" placeholder="用大白话解释">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>概念 A - 症状</label>
+          <input type="text" id="cmpA_symptom" placeholder="可选">
+        </div>
+        <div class="form-group">
+          <label>概念 A - 类比</label>
+          <input type="text" id="cmpA_analogy" placeholder="可选">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>概念 A - 如何处理</label>
+        <input type="text" id="cmpA_fix" placeholder="可选">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>概念 B - 名称</label>
+          <input type="text" id="cmpB_name" placeholder="概念 B 名称">
+        </div>
+        <div class="form-group">
+          <label>概念 B - 学科</label>
+          <input type="text" id="cmpB_discipline" placeholder="如 stats / cs / econ">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>概念 B - 人话翻译</label>
+        <input type="text" id="cmpB_plain" placeholder="用大白话解释">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>概念 B - 症状</label>
+          <input type="text" id="cmpB_symptom" placeholder="可选">
+        </div>
+        <div class="form-group">
+          <label>概念 B - 类比</label>
+          <input type="text" id="cmpB_analogy" placeholder="可选">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>概念 B - 如何处理</label>
+        <input type="text" id="cmpB_fix" placeholder="可选">
+      </div>
+      <div class="form-group">
+        <label>摘要 / 一句话比较</label>
+        <textarea id="cmpSummary" style="min-height:60px" placeholder="一句话总结两者差异或共同点"></textarea>
+      </div>
+      <div class="form-group">
+        <label>关系类型</label>
+        <select id="cmpRelationship">
+          <option value="同一性">同一性（同一个概念，不同叫法）</option>
+          <option value="相似性">相似性（易混淆但本质不同）</option>
+          <option value="关联性" selected>关联性（相关但本质不同）</option>
+          <option value="对立性">对立性（对立/相反概念）</option>
+          <option value="包含性">包含性（一者包含另一者）</option>
+          <option value="无关性">无关性</option>
+          <option value="因果关系">因果关系（一者导致另一者）</option>
+          <option value="比较关系">比较关系（两者对比理解）</option>
+          <option value="解释关系">解释关系（一者解释另一者）</option>
+          <option value="顺承关系">顺承关系（先后顺序关系）</option>
+          <option value="转折关系">转折关系（相反转变）</option>
+          <option value="并列关系">并列关系（同级别并列）</option>
+        </select>
+      </div>
+      <div style="padding:10px 0">
+        <button onclick="aiGenerateComparison()" style="padding:10px 20px;background:#B8783A;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:500;font-size:14px">
+          ✨ AI 生成剩余内容（需先填概念 A 名称 + 学科、概念 B 名称 + 学科）
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeComparisonModal()">取消</button>
+      <button class="btn-primary" onclick="saveComparison()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== 配置 ==========
+// 动态检测路径前缀（本地部署为 ""，云服务器部署为 "/twym"）
+function _getBasePath() {
+  const pathname = window.location.pathname;
+  if (pathname.startsWith('/twym/') || pathname === '/twym') {
+    return '/twym';
+  }
+  // 检测是否在 /twym 前缀下
+  if (pathname.split('/').includes('twym')) {
+    // 返回 /twym 作为 base path
+    return '/twym';
+  }
+  return '';
+}
+const API_BASE = _getBasePath(); // 同源，直接相对路径
+let ADMIN_TOKEN = localStorage.getItem('adminToken') || '';
+let currentPage = 1;
+let currentTab = 'dashboard';
+let editingId = null;
+let autoSaveTimer = null;
+let autoSaveEditingId = null;
+let autoSaveDirty = false;
+let lastAutoSaveTime = 0;
+
+const DISCIPLINE_NAMES = {
+  cs: '计算机科学', econ: '经济学', law: '法律', cross: '跨学科',
+  math: '数学', bio: '生物学', cyber: '控制论', med: '医学/心理',
+  chem: '化学', physics: '物理学'
+};
+const DISCIPLINE_COLORS = {
+  cs: '#4A9B8E', econ: '#B8783A', law: '#6B7B5E', cross: '#8B7D6B',
+  math: '#5B7BA0', bio: '#5B9B6E', cyber: '#7B6BA0', med: '#A45D6A',
+  chem: '#9B7B5E', physics: '#6B9B8E'
+};
+
+// ========== 登录 ==========
+async function doLogin() {
+  const token = document.getElementById('tokenInput').value.trim();
+  if (!token) return showToast('请输入Token', 'error');
+
+  // 验证Token
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/dashboard`, {
+      headers: { 'x-admin-token': token }
+    });
+    if (res.ok) {
+      ADMIN_TOKEN = token;
+      localStorage.setItem('adminToken', token);
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('adminPage').style.display = 'block';
+      await refreshDisciplineSelect();
+      loadDashboard();
+    } else {
+      showToast('Token无效', 'error');
+    }
+  } catch {
+    showToast('无法连接后端，请确认后端已启动', 'error');
+  }
+}
+
+function doLogout() {
+  if (!confirm('确认退出管理后台？')) return;
+  localStorage.removeItem('adminToken');
+  ADMIN_TOKEN = '';
+  document.getElementById('adminPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'block';
+  document.getElementById('tokenInput').value = '';
+  showToast('已退出', 'success');
+}
+
+// 刷新所有学科下拉框（按排序顺序）
+async function refreshDisciplineSelect() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/terms/disciplines`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    // 更新全局变量
+    data.data.forEach(disc => {
+      DISCIPLINE_NAMES[disc.id] = disc.name;
+      DISCIPLINE_COLORS[disc.id] = disc.color;
+    });
+
+    // 词条管理筛选下拉框
+    const filterSelect = document.getElementById('disciplineFilter');
+    const filterValue = filterSelect.value;
+    filterSelect.innerHTML = '<option value="">全部学科</option>';
+    data.data.forEach(disc => {
+      const option = document.createElement('option');
+      option.value = disc.id;
+      option.textContent = disc.name;
+      option.style.backgroundColor = disc.color + '20';
+      option.style.color = disc.color;
+      filterSelect.appendChild(option);
+    });
+    filterSelect.innerHTML += '<option value="add-new">+ 新增学科</option>';
+    filterSelect.value = filterValue;
+
+    // 编辑/新增词条弹窗中的学科下拉框
+    const editSelect = document.getElementById('editDiscipline');
+    const editValue = editSelect.value;
+    editSelect.innerHTML = '';
+    data.data.forEach(disc => {
+      const option = document.createElement('option');
+      option.value = disc.id;
+      option.textContent = disc.name;
+      editSelect.appendChild(option);
+    });
+    editSelect.value = editValue || data.data[0]?.id || '';
+
+    // 备份页导出下拉框
+    const exportSelect = document.getElementById('exportDiscipline');
+    const exportValue = exportSelect.value;
+    exportSelect.innerHTML = '<option value="">全部学科</option>';
+    data.data.forEach(disc => {
+      const option = document.createElement('option');
+      option.value = disc.id;
+      option.textContent = disc.name;
+      exportSelect.appendChild(option);
+    });
+    exportSelect.value = exportValue;
+  } catch {}
+}
+
+// 自动登录
+if (ADMIN_TOKEN) {
+  doLogin();
+}
+
+// ========== 标签页 ==========
+function switchTab(tab) {
+  const modalOpen = document.getElementById('editModal').classList.contains('show');
+  if (modalOpen && autoSaveDirty) {
+    if (!confirm('有未保存的修改，切换标签页将丢失更改。确定继续？')) return;
+    clearAutoSaveTimer();
+    resetAutoSaveState();
+  }
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = c.id === `tab-${tab}` ? 'block' : 'none');
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'terms') loadTerms();
+  if (tab === 'disciplines') loadDisciplines();
+  if (tab === 'submissions') loadSubmissions();
+  if (tab === 'comparisons') loadComparisons();
+  if (tab === 'backup') loadBackups();
+  if (tab === 'concept-antibodies') loadConceptAntibodies();
+  if (tab === 'career-deconstruction') loadCareerDeconstruction();
+  if (tab === 'industry-deconstruction') loadIndustryDeconstruction();
+}
+
+// ========== 统计面板 ==========
+async function loadDashboard() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/dashboard`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+    const d = data.data;
+
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="number">${d.totalTerms}</div><div class="label">总词条</div></div>
+      <div class="stat-card"><div class="number">${d.hotTerms}</div><div class="label">热门词条</div></div>
+      <div class="stat-card"><div class="number">${d.totalLinks}</div><div class="label">图谱关系</div></div>
+      <div class="stat-card"><div class="number">${d.totalCmp}</div><div class="label">概念对比</div></div>
+      <div class="stat-card"><div class="number">${d.totalSc}</div><div class="label">情景还原</div></div>
+    `;
+
+    // 获取学科列表以正确排序
+    let disciplines = [];
+    try {
+      const discRes = await fetch(`${API_BASE}/api/v1/terms/disciplines`);
+      const discData = await discRes.json();
+      if (discData.success) {
+        disciplines = discData.data.map(disc => disc.id);
+      }
+    } catch {}
+
+    // 学科分布 - 按学科顺序排列
+    const chart = document.getElementById('disciplineChart');
+    const entries = Object.entries(d.byDiscipline);
+    const sortedEntries = disciplines.length > 0
+      ? disciplines.map(id => [id, d.byDiscipline[id] || 0])
+      : entries.sort((a, b) => b[1] - a[1]);
+    chart.innerHTML = sortedEntries.map(([disc, count]) => {
+      const pct = d.totalTerms > 0 ? (count / d.totalTerms * 100).toFixed(1) : '0.0';
+      const color = escapeHtml(DISCIPLINE_COLORS[disc] || '#8B7D6B');
+      const label = `${count} (${pct}%)`;
+      const discName = escapeHtml(DISCIPLINE_NAMES[disc] || disc);
+      return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+        <span style="width:80px;font-size:13px;color:#6B6B7B">${discName}</span>
+        <div style="flex:1;height:24px;background:#F7F5F0;border-radius:6px;overflow:hidden">
+          <div style="min-width:60px;width:${pct}%;height:100%;background:${color};border-radius:6px;display:flex;align-items:center;padding:0 8px;color:#fff;font-size:12px;font-weight:500;white-space:nowrap;justify-content:flex-end">${label}</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch {}
+
+  // 并行加载数据质量报告
+  loadDataQuality();
+}
+
+// ========== 数据质量 ==========
+async function loadDataQuality() {
+  const container = document.getElementById('dataQualityContent');
+  if (!container) return;
+  container.innerHTML = '<span style="color:#A0A0B0">加载中...</span>';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/data-quality`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) {
+      container.innerHTML = '<span style="color:#d63031">加载失败</span>';
+      return;
+    }
+    const d = data.data;
+    const total = d.total_terms || 0;
+    const emptyCount = d.empty_description || 0;
+    const duplicateArr = d.duplicate_names || [];
+    const missingDiscArr = d.missing_discipline || [];
+    const orphanArr = d.orphan_links || [];
+    const duplicateCount = duplicateArr.reduce((sum, item) => sum + item.count, 0);
+    const missingDiscCount = missingDiscArr.length;
+    const orphanCount = orphanArr.length;
+    const badTotal = emptyCount + duplicateCount + missingDiscCount + orphanCount;
+
+    let html = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px">
+        <div style="background:#F7F5F0;border-radius:10px;padding:14px">
+          <div style="font-size:12px;color:#6B6B7B;margin-bottom:6px">词条总数</div>
+          <div style="font-size:24px;font-weight:700;color:#1A1A2E">${total}</div>
+        </div>
+        <div style="background:${emptyCount > 0 ? '#fff5f5' : '#F7F5F0'};border-radius:10px;padding:14px;border:1px solid ${emptyCount > 0 ? '#ffcdd2' : 'transparent'}">
+          <div style="font-size:12px;color:#6B6B7B;margin-bottom:6px">空描述/缺失字段</div>
+          <div style="font-size:24px;font-weight:700;${emptyCount > 0 ? 'color:#d63031' : 'color:#1A1A2E'}">${emptyCount}</div>
+        </div>
+        <div style="background:${duplicateArr.length > 0 ? '#fff5f5' : '#F7F5F0'};border-radius:10px;padding:14px;border:1px solid ${duplicateArr.length > 0 ? '#ffcdd2' : 'transparent'}">
+          <div style="font-size:12px;color:#6B6B7B;margin-bottom:6px">重名词条</div>
+          <div style="font-size:24px;font-weight:700;${duplicateArr.length > 0 ? 'color:#d63031' : 'color:#1A1A2E'}">${duplicateArr.length} 组</div>
+        </div>
+        <div style="background:${missingDiscCount > 0 ? '#fff5f5' : '#F7F5F0'};border-radius:10px;padding:14px;border:1px solid ${missingDiscCount > 0 ? '#ffcdd2' : 'transparent'}">
+          <div style="font-size:12px;color:#6B6B7B;margin-bottom:6px">缺失学科</div>
+          <div style="font-size:24px;font-weight:700;${missingDiscCount > 0 ? 'color:#d63031' : 'color:#1A1A2E'}">${missingDiscCount}</div>
+        </div>
+        <div style="background:${orphanCount > 0 ? '#fff5f5' : '#F7F5F0'};border-radius:10px;padding:14px;border:1px solid ${orphanCount > 0 ? '#ffcdd2' : 'transparent'}">
+          <div style="font-size:12px;color:#6B6B7B;margin-bottom:6px">孤立关系</div>
+          <div style="font-size:24px;font-weight:700;${orphanCount > 0 ? 'color:#d63031' : 'color:#1A1A2E'}">${orphanCount}</div>
+        </div>
+      </div>
+    `;
+
+    if (badTotal === 0) {
+      html += `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;padding:12px;font-size:13px;color:#2e7d32">✅ 数据质量良好，未发现明显问题</div>`;
+    } else {
+      html += `<div style="font-size:13px;color:#1A1A2E;margin-bottom:10px">🔎 问题详情：</div>`;
+
+      if (emptyCount > 0) {
+        html += `<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#d63031">
+          有 <strong>${emptyCount}</strong> 个词条的翻译/本质/提示字段为空，建议补充内容
+        </div>`;
+      }
+
+      if (duplicateArr.length > 0) {
+        const rows = duplicateArr.map((x) =>
+          `<span style="display:inline-block;background:#fff;border:1px solid #ffcdd2;border-radius:6px;padding:4px 10px;margin:4px 8px 4px 0;font-size:12px;color:#d63031">${escapeHtml(x.name)} <span style="opacity:0.7">(${x.count}条)</span></span>`
+        ).join('');
+        html += `<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#d63031">
+          发现 <strong>${duplicateArr.length}</strong> 组重名词条：<div style="margin-top:6px">${rows}</div>
+        </div>`;
+      }
+
+      if (missingDiscCount > 0) {
+        const rows = missingDiscArr.map((x) =>
+          `<span style="display:inline-block;background:#fff;border:1px solid #ffcdd2;border-radius:6px;padding:4px 10px;margin:4px 8px 4px 0;font-size:12px;color:#d63031">${escapeHtml(x.id)} · ${escapeHtml(x.name || '-')}</span>`
+        ).join('');
+        html += `<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#d63031">
+          以下词条缺失学科分类：<div style="margin-top:6px">${rows}</div>
+        </div>`;
+      }
+
+      if (orphanCount > 0) {
+        const rows = orphanArr.map((x) =>
+          `<span style="display:inline-block;background:#fff;border:1px solid #ffcdd2;border-radius:6px;padding:4px 10px;margin:4px 8px 4px 0;font-size:12px;color:#d63031">${escapeHtml(x.source)} ↔ ${escapeHtml(x.target)}</span>`
+        ).join('');
+        html += `<div style="background:#fff5f5;border:1px solid #ffcdd2;border-radius:8px;padding:10px 12px;font-size:13px;color:#d63031">
+          有 <strong>${orphanCount}</strong> 条图谱关系指向不存在的词条：<div style="margin-top:6px">${rows}</div>
+        </div>`;
+      }
+    }
+
+    container.innerHTML = html;
+  } catch {
+    container.innerHTML = '<span style="color:#d63031">加载失败，请确认后端已启动</span>';
+  }
+}
+
+// ========== 词条管理 ==========
+async function loadTerms(page = 1) {
+  currentPage = page;
+  const search = document.getElementById('searchInput').value;
+  const discipline = document.getElementById('disciplineFilter').value;
+
+  try {
+    const params = new URLSearchParams({ page: String(page), pageSize: '20' });
+    if (search) params.append('search', search);
+    if (discipline) params.append('discipline', discipline);
+
+    // 并行获取词条和学科列表
+    const [termsRes, discRes] = await Promise.all([
+      fetch(`${API_BASE}/api/v1/admin/terms?${params}`, {
+        headers: { 'x-admin-token': ADMIN_TOKEN }
+      }),
+      fetch(`${API_BASE}/api/v1/terms/disciplines`)
+    ]);
+
+    const termsData = await termsRes.json();
+    if (!termsData.success) return;
+
+    // 获取学科顺序
+    let disciplineOrder = {};
+    try {
+      const discData = await discRes.json();
+      if (discData.success) {
+        discData.data.forEach((d, i) => {
+          disciplineOrder[d.id] = i;
+        });
+      }
+    } catch {}
+
+    // 按学科顺序排序词条
+    const sortedTerms = [...termsData.data.terms].sort((a, b) => {
+      const orderA = disciplineOrder[a.discipline] ?? 999;
+      const orderB = disciplineOrder[b.discipline] ?? 999;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.name.localeCompare(b.name);
+    });
+
+    const tbody = document.getElementById('termsTable');
+    tbody.innerHTML = sortedTerms.map(t => {
+      const dColor = escapeHtml(DISCIPLINE_COLORS[t.discipline] || '#8B7D6B');
+      const discName = escapeHtml(DISCIPLINE_NAMES[t.discipline] || t.discipline);
+      return `<tr>
+        <td style="font-family:monospace;font-size:12px;color:#A0A0B0">${escapeHtml(t.id)}</td>
+        <td><span class="disc-badge" style="background:${dColor}15;color:${dColor}">${discName}</span></td>
+        <td style="font-weight:500;color:#1A1A2E">${escapeHtml(t.name)}</td>
+        <td>${escapeHtml(t.translation)}</td>
+        <td>${t.hot ? '<span class="hot-badge">热门</span>' : ''}</td>
+        <td>
+          <button class="btn-icon" onclick='openEditModal(${JSON.stringify(t).replace(/'/g,"&#39;")})'>编辑</button>
+          <button class="btn-icon" onclick='viewTermHistory(${JSON.stringify(t.id).replace(/'/g,"&#39;")},${JSON.stringify(t.name).replace(/'/g,"&#39;")})'>历史</button>
+          <button class="btn-icon delete" onclick="deleteTerm('${escapeHtml(t.id)}')">删除</button>
+        </td>
+      </tr>`;
+    }).join('');
+
+    // 分页
+    const totalPages = Math.ceil(termsData.data.total / termsData.data.pageSize);
+    let pages = '';
+    for (let i = 1; i <= totalPages; i++) {
+      if (i === 1 || i === totalPages || (i >= page - 2 && i <= page + 2)) {
+        pages += `<button class="${i === page ? 'active' : ''}" onclick="loadTerms(${i})">${i}</button>`;
+      } else if (i === page - 3 || i === page + 3) {
+        pages += `<button disabled>...</button>`;
+      }
+    }
+    document.getElementById('pagination').innerHTML = pages;
+  } catch {}
+}
+
+// ========== 编辑弹窗 ==========
+function openEditModal(term = null) {
+  editingId = term ? term.id : null;
+  autoSaveEditingId = term ? term.id : null;
+  autoSaveDirty = false;
+  lastAutoSaveTime = 0;
+  clearAutoSaveTimer();
+  document.getElementById('modalTitle').textContent = term ? '编辑词条' : '新增词条';
+  document.getElementById('editId').value = term ? term.id : '';
+  document.getElementById('editId').disabled = !!term;
+  document.getElementById('editDiscipline').value = term ? term.discipline : 'math';
+  document.getElementById('editName').value = term ? term.name : '';
+  document.getElementById('editTranslation').value = term ? term.translation : '';
+  document.getElementById('editEssence').value = term ? term.essence : '';
+  document.getElementById('editTip').value = term ? term.tip : '';
+  document.getElementById('editHot').checked = term ? term.hot : false;
+  updateAutoSaveStatus();
+  // 仅编辑模式才绑定监听
+  if (term) {
+    ['editId','editDiscipline','editName','editTranslation','editEssence','editTip','editHot'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('input', onEditFieldChange);
+      el.addEventListener('change', onEditFieldChange);
+    });
+  }
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditModal() {
+  const modalOpen = document.getElementById('editModal').classList.contains('show');
+  if (modalOpen && autoSaveDirty && autoSaveEditingId) {
+    if (!confirm('有未保存的修改，关闭后将丢失。确定关闭？')) return;
+  }
+  document.getElementById('editModal').classList.remove('show');
+  editingId = null;
+  clearAutoSaveTimer();
+  resetAutoSaveState();
+  const statusEl = document.getElementById('autoSaveStatus');
+  if (statusEl) statusEl.textContent = '';
+  // 移除字段监听
+  ['editId','editDiscipline','editName','editTranslation','editEssence','editTip','editHot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.removeEventListener('input', onEditFieldChange);
+    el.removeEventListener('change', onEditFieldChange);
+  });
+}
+
+async function saveTerm(isAutoSave = false) {
+  const body = {
+    id: document.getElementById('editId').value.trim(),
+    discipline: document.getElementById('editDiscipline').value,
+    name: document.getElementById('editName').value.trim(),
+    translation: document.getElementById('editTranslation').value.trim(),
+    essence: document.getElementById('editEssence').value.trim(),
+    tip: document.getElementById('editTip').value.trim(),
+    hot: document.getElementById('editHot').checked,
+  };
+
+  if (!body.id || !body.name) {
+    if (isAutoSave) return;
+    return showToast('ID和名称必填', 'error');
+  }
+
+  try {
+    let res;
+    if (editingId) {
+      const { id, ...updates } = body;
+      res = await fetch(`${API_BASE}/api/v1/admin/terms/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify(updates),
+      });
+    } else {
+      res = await fetch(`${API_BASE}/api/v1/admin/terms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify(body),
+      });
+    }
+    const data = await res.json();
+    if (data.success) {
+      if (isAutoSave) {
+        autoSaveDirty = false;
+        lastAutoSaveTime = Date.now();
+        updateAutoSaveStatus();
+        showToast('已自动保存', 'auto-save');
+      } else {
+        autoSaveDirty = false;
+        lastAutoSaveTime = Date.now();
+        showToast(editingId ? '更新成功' : '创建成功', 'success');
+        closeEditModal();
+        loadTerms(currentPage);
+        loadDashboard();
+      }
+    } else {
+      if (isAutoSave) {
+        showToast('自动保存失败', 'auto-save');
+        updateAutoSaveStatus();
+      } else {
+        showToast(data.error?.message || '保存失败', 'error');
+      }
+    }
+  } catch {
+    if (isAutoSave) {
+      showToast('自动保存失败', 'auto-save');
+    } else {
+      showToast('网络错误', 'error');
+    }
+  }
+}
+
+// ========== 自动保存辅助 ==========
+function clearAutoSaveTimer() {
+  if (autoSaveTimer) {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = null;
+  }
+}
+
+function resetAutoSaveState() {
+  autoSaveEditingId = null;
+  autoSaveDirty = false;
+}
+
+function onEditFieldChange() {
+  // 仅在编辑模式生效
+  if (!autoSaveEditingId) return;
+  autoSaveDirty = true;
+  updateAutoSaveStatus();
+  clearAutoSaveTimer();
+  autoSaveTimer = setTimeout(() => {
+    if (autoSaveDirty && autoSaveEditingId) {
+      saveTerm(true);
+    }
+  }, 10000);
+}
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+function updateAutoSaveStatus() {
+  const el = document.getElementById('autoSaveStatus');
+  if (!el) return;
+  if (!autoSaveEditingId) {
+    el.textContent = '';
+    return;
+  }
+  if (autoSaveDirty) {
+    el.textContent = '有未保存的修改，将在10秒内自动保存';
+  } else if (lastAutoSaveTime > 0) {
+    const d = new Date(lastAutoSaveTime);
+    el.textContent = `上次自动保存: ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  } else {
+    el.textContent = '';
+  }
+}
+
+async function deleteTerm(id) {
+  if (!confirm(`确定删除词条 ${id}？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/terms/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN },
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('删除成功', 'success');
+      loadTerms(currentPage);
+      loadDashboard();
+    }
+  } catch {}
+}
+
+// ========== 历史版本 ==========
+const FIELD_NAMES_CN = {
+  name: '名称',
+  translation: '翻译',
+  essence: '本质',
+  tip: '提示',
+  hot: '热门',
+};
+
+function formatTimestamp(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts);
+  const pad = (n) => (n < 10 ? '0' + n : '' + n);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatFieldValue(field, value) {
+  if (value === null || value === undefined || value === '') return '<span style="color:#A0A0B0">(空)</span>';
+  if (field === 'hot') return value === '1' || value === 1 || value === true ? '是' : '否';
+  const text = escapeHtml(String(value));
+  const titleAttr = text.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  // 长文本截断为单行，hover 可见，且避免表格被撑爆
+  return `<span title="${titleAttr}" style="display:inline-block;max-width:260px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle">${text}</span>`;
+}
+
+async function viewTermHistory(termId, termName) {
+  const titleEl = document.getElementById('historyTitle');
+  const bodyEl = document.getElementById('historyBody');
+  titleEl.textContent = `变更历史 - ${termName || termId}`;
+  bodyEl.innerHTML = '<p style="color:#A0A0B0;text-align:center;padding:20px 0">加载中...</p>';
+  document.getElementById('historyModal').classList.add('show');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/terms/${encodeURIComponent(termId)}/history`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN },
+    });
+    const data = await res.json();
+    if (!data.success || !data.data || data.data.length === 0) {
+      bodyEl.innerHTML = '<p style="color:#A0A0B0;text-align:center;padding:40px 0">暂无变更历史</p>';
+      return;
+    }
+
+    const rows = data.data
+      .map((h) => {
+        const field = FIELD_NAMES_CN[h.field_name] || h.field_name;
+        return `<tr>
+          <td style="white-space:nowrap;color:#6B6B7B">${escapeHtml(formatTimestamp(h.created_at))}</td>
+          <td style="color:#1A1A2E;font-weight:500">${escapeHtml(field)}</td>
+          <td style="color:#B5651D">${formatFieldValue(h.field_name, h.old_value)}</td>
+          <td style="text-align:center;color:#D4853B">→</td>
+          <td style="color:#27ae60">${formatFieldValue(h.field_name, h.new_value)}</td>
+        </tr>`;
+      })
+      .join('');
+
+    bodyEl.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="background:#F7F5F0">
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#1A1A2E">时间</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#1A1A2E">字段</th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#1A1A2E">原值</th>
+            <th style="padding:10px 4px;text-align:center;font-weight:600;color:#1A1A2E;width:30px"></th>
+            <th style="padding:10px 12px;text-align:left;font-weight:600;color:#1A1A2E">新值</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch (e) {
+    bodyEl.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:40px 0">加载失败，请稍后重试</p>';
+  }
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModal').classList.remove('show');
+}
+
+// ========== 数据备份 ==========
+async function loadBackups() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/backups`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    const backups = data.data || [];
+    document.getElementById('backupCount').textContent = backups.length;
+    document.getElementById('backupTable').innerHTML = backups.map(b =>
+      `<tr><td>${b.name}</td><td>${(b.size / 1024).toFixed(1)} KB</td><td>${new Date(b.date).toLocaleString('zh-CN')}</td></tr>`
+    ).join('') || '<tr><td colspan="3" style="text-align:center;color:#A0A0B0;padding:30px">暂无备份</td></tr>';
+  } catch {}
+}
+
+async function doBackup() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/backup`, {
+      method: 'POST',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('备份成功', 'success');
+      loadBackups();
+    }
+  } catch {
+    showToast('备份失败', 'error');
+  }
+}
+
+async function exportTermsCSV() {
+  try {
+    const discipline = document.getElementById('exportDiscipline').value;
+    const params = new URLSearchParams();
+    if (discipline) params.append('discipline', discipline);
+    const url = `${API_BASE}/api/v1/admin/terms/export/csv?${params.toString()}`;
+    const res = await fetch(url, { headers: { 'x-admin-token': ADMIN_TOKEN } });
+    const csv = await res.text();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const blobUrl = URL.createObjectURL(blob);
+    const discLabel = discipline ? (DISCIPLINE_NAMES[discipline] || discipline) : '全部';
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = `tongwuyiming_${discLabel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(blobUrl);
+    showToast(`导出成功（${discLabel} / CSV）`, 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('导出失败', 'error');
+  }
+}
+
+// ========== 学科管理 ==========
+let disciplineList = [];
+let draggedRow = null;
+
+async function loadDisciplines() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/disciplines`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+
+    disciplineList = data.data;
+
+    const tbody = document.getElementById('disciplinesTable');
+    tbody.innerHTML = disciplineList.map((d, i) => `
+      <tr draggable="true" data-id="${d.id}" ondragstart="handleDragStart(event)" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragend="handleDragEnd(event)">
+        <td style="cursor:move;text-align:center">${i + 1}</td>
+        <td><code style="background:#F7F5F0;padding:2px 6px;border-radius:4px">${d.id}</code></td>
+        <td style="font-weight:500">${d.name}</td>
+        <td><span style="display:inline-block;width:20px;height:20px;background:${d.color};border-radius:4px;vertical-align:middle"></span> ${d.color}</td>
+        <td>${d.term_count || 0}</td>
+        <td>
+          <button class="btn-icon" onclick="editDiscipline('${d.id}')">编辑</button>
+          <button class="btn-icon delete" onclick="deleteDiscipline('${d.id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function handleDragStart(e) {
+  draggedRow = e.target;
+  e.target.style.opacity = '0.5';
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  const row = e.target.closest('tr');
+  if (row && row !== draggedRow) {
+    row.style.borderTop = '2px solid #D4853B';
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  const row = e.target.closest('tr');
+  if (row && row !== draggedRow) {
+    row.style.borderTop = '';
+    const tbody = row.parentNode;
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const draggedIndex = allRows.indexOf(draggedRow);
+    const targetIndex = allRows.indexOf(row);
+    if (draggedIndex < targetIndex) {
+      row.after(draggedRow);
+    } else {
+      row.before(draggedRow);
+    }
+    // 更新排序号
+    tbody.querySelectorAll('tr').forEach((r, i) => {
+      r.querySelector('td:first-child').textContent = i + 1;
+    });
+  }
+}
+
+function handleDragEnd(e) {
+  e.target.style.opacity = '';
+  document.querySelectorAll('#disciplinesTable tr').forEach(r => r.style.borderTop = '');
+}
+
+async function saveDisciplineOrder() {
+  const rows = document.querySelectorAll('#disciplinesTable tr');
+  const order = Array.from(rows).map(r => r.dataset.id);
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/disciplines/order`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({ order })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('排序已保存', 'success');
+      loadDisciplines();
+    } else {
+      showToast(data.error?.message || '保存失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function editDiscipline(id) {
+  const d = disciplineList.find(x => x.id === id);
+  if (!d) return;
+  
+  document.getElementById('disciplineKey').value = d.id;
+  document.getElementById('disciplineKey').disabled = true;
+  document.getElementById('disciplineName').value = d.name;
+  document.getElementById('disciplineColor').value = d.color;
+  document.getElementById('addDisciplineModal').classList.add('show');
+}
+
+async function deleteDiscipline(id) {
+  const d = disciplineList.find(x => x.id === id);
+  if (!d) return;
+  
+  if (!confirm(`确定删除学科 "${d.name}" 吗？\n注意：该学科下不能有任何词条才能删除。`)) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/disciplines/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('学科已删除', 'success');
+      loadDisciplines();
+      loadDashboard();
+    } else {
+      showToast(data.error?.message || '删除失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+function handleDisciplineChange() {
+  const select = document.getElementById('disciplineFilter');
+  if (select.value === 'add-new') {
+    select.value = ''; // 重置选择
+    openAddDisciplineModal();
+  } else {
+    loadTerms();
+  }
+}
+
+function openAddDisciplineModal() {
+  document.getElementById('disciplineKey').value = '';
+  document.getElementById('disciplineKey').disabled = false;
+  document.getElementById('disciplineName').value = '';
+  document.getElementById('disciplineColor').value = '#6B7B5E';
+  document.getElementById('addDisciplineModal').classList.add('show');
+}
+
+function closeAddDisciplineModal() {
+  document.getElementById('addDisciplineModal').classList.remove('show');
+}
+
+async function saveDiscipline() {
+  const key = document.getElementById('disciplineKey').value.trim();
+  const name = document.getElementById('disciplineName').value.trim();
+  const color = document.getElementById('disciplineColor').value;
+  const isEdit = document.getElementById('disciplineKey').disabled;
+  
+  if (!key) return showToast('请输入学科标识', 'error');
+  if (!name) return showToast('请输入学科名称', 'error');
+  if (!isEdit && !/^[a-z_]+$/.test(key)) return showToast('学科标识只能包含小写字母和下划线', 'error');
+  
+  try {
+    if (isEdit) {
+      // 编辑模式
+      const res = await fetch(`${API_BASE}/api/v1/admin/disciplines/${key}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify({ name, color })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('学科已更新', 'success');
+        closeAddDisciplineModal();
+        await refreshDisciplineSelect();
+        loadDisciplines();
+        loadDashboard();
+      } else {
+        showToast(data.error?.message || '更新失败', 'error');
+      }
+    } else {
+      // 新增模式
+      const res = await fetch(`${API_BASE}/api/v1/admin/disciplines`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify({ key, name, color })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('学科添加成功', 'success');
+        closeAddDisciplineModal();
+        await refreshDisciplineSelect();
+        loadDisciplines();
+        loadDashboard();
+      } else {
+        showToast(data.error?.message || '添加失败', 'error');
+      }
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+// ========== 搜索建议 ==========
+let searchDebounce = null;
+async function showSearchSuggestions() {
+  const query = document.getElementById('searchInput').value.trim();
+  const suggestionsDiv = document.getElementById('searchSuggestions');
+  
+  if (!query) {
+    suggestionsDiv.classList.remove('show');
+    return;
+  }
+  
+  // 防抖
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/terms/search?q=${encodeURIComponent(query)}&limit=10`);
+      const data = await res.json();
+      if (!data.success || !data.data.results || data.data.results.length === 0) {
+        suggestionsDiv.classList.remove('show');
+        return;
+      }
+      
+      suggestionsDiv.innerHTML = data.data.results.map(item => {
+        const t = item.term;
+        const dColor = escapeHtml(DISCIPLINE_COLORS[t.discipline] || '#8B7D6B');
+        const discBadge = t.discipline
+          ? `<span class="disc-badge" style="background:${dColor}20;color:${dColor};padding:2px 6px;border-radius:4px;font-size:11px;margin-right:6px">${escapeHtml(DISCIPLINE_NAMES[t.discipline] || t.discipline)}</span>`
+          : '';
+        return `<div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(t.id)}')">
+          <div class="suggestion-term">${discBadge}${escapeHtml(t.name)}</div>
+          <div class="suggestion-translation">${escapeHtml(t.translation || '')}</div>
+        </div>`;
+      }).join('');
+      suggestionsDiv.classList.add('show');
+    } catch {}
+  }, 300);
+}
+
+function selectSuggestion(id) {
+  document.getElementById('searchInput').value = id;
+  document.getElementById('searchSuggestions').classList.remove('show');
+  loadTerms();
+}
+
+// 点击外部关闭建议
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#searchInput') && !e.target.closest('#searchSuggestions')) {
+    document.getElementById('searchSuggestions').classList.remove('show');
+  }
+});
+
+// ========== 批量导入（CSV） ==========
+let batchFileContent = '';
+
+function openBatchImportModal() {
+  batchFileContent = '';
+  const fileEl = document.getElementById('batchImportFile');
+  if (fileEl) fileEl.value = '';
+  const previewEl = document.getElementById('batchImportPreview');
+  if (previewEl) previewEl.textContent = '';
+  const previewGroup = document.getElementById('batchImportPreviewGroup');
+  if (previewGroup) previewGroup.style.display = 'none';
+  document.getElementById('batchImportModal').classList.add('show');
+}
+
+function closeBatchImportModal() {
+  document.getElementById('batchImportModal').classList.remove('show');
+  const fileEl = document.getElementById('batchImportFile');
+  if (fileEl) fileEl.value = '';
+  batchFileContent = '';
+}
+
+function onBatchFileSelected() {
+  const fileEl = document.getElementById('batchImportFile');
+  const file = fileEl.files && fileEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    batchFileContent = e.target.result;
+    const lines = batchFileContent.split(/\r?\n/).slice(0, 4).join('\n');
+    const previewEl = document.getElementById('batchImportPreview');
+    previewEl.textContent = lines;
+    document.getElementById('batchImportPreviewGroup').style.display = '';
+  };
+  reader.onerror = function () { showToast('文件读取失败', 'error'); };
+  reader.readAsText(file, 'utf-8');
+}
+
+function downloadImportTemplate() {
+  const header = '词条ID,学科,术语名称,人话翻译,本质解释,防忽悠提示,热门标记';
+  const sample1 = 'demo001,cs,机器学习,让电脑从数据中学规律,基于统计的自动归纳模型,注意区分监督/无监督,是';
+  const sample2 = 'demo002,math,傅立叶变换,把任意函数拆成正弦波之和,时域与频域的可逆变换,工程领域非常常用,是';
+  const sample3 = 'demo003,econ,机会成本,为做某事而放弃的其他最好选择,决策时必须考虑隐性成本,沉没成本不应计入,否';
+  const content = '\uFEFF' + [header, sample1, sample2, sample3].join('\r\n');
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tongwuyiming_导入模板.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('模板已下载', 'success');
+}
+
+async function doBatchImport() {
+  if (!batchFileContent) return showToast('请先选择 CSV 文件', 'error');
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/terms/import/csv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({ content: batchFileContent }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const d = data.data || {};
+      const total = d.total ?? '(未知)';
+      const created = d.success ?? d.created ?? 0;
+      const failed = d.failed ?? 0;
+      let msg = `导入完成：共${total}条，成功${created}条`;
+      if (failed > 0) msg += `，失败${failed}条`;
+      showToast(msg, failed > 0 ? 'error' : 'success');
+      closeBatchImportModal();
+      loadTerms(currentPage);
+      loadDashboard();
+    } else {
+      showToast(data.error?.message || '导入失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+// ========== 概念抗体管理 ==========
+let conceptAntibodiesList = [];
+
+async function loadConceptAntibodies() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/concept-antibodies`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+    
+    conceptAntibodiesList = data.data;
+    
+    const tbody = document.getElementById('conceptAntibodiesTable');
+    if (conceptAntibodiesList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty" style="padding:40px">暂无概念抗体</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = conceptAntibodiesList.map(ca => `
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#A0A0B0">${ca.id}</td>
+        <td>${ca.term_id}</td>
+        <td style="font-weight:500;color:#1A1A2E">${ca.title}</td>
+        <td>${ca.category || '-'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ca.description || '-'}</td>
+        <td>
+          <button class="btn-icon" onclick='openConceptAntibodyModal(${JSON.stringify(ca).replace(/'/g,"&#39;")})'>编辑</button>
+          <button class="btn-icon delete" onclick="deleteConceptAntibody('${ca.id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch {
+    document.getElementById('conceptAntibodiesTable').innerHTML = `<tr><td colspan="6" class="empty" style="padding:40px">加载失败</td></tr>`;
+  }
+}
+
+function openConceptAntibodyModal(ca = null) {
+  document.getElementById('conceptAntibodyTitle').textContent = ca ? '编辑概念抗体' : '新增概念抗体';
+  document.getElementById('caId').value = ca ? ca.id : '';
+  document.getElementById('caId').disabled = !!ca;
+  document.getElementById('caTermId').value = ca ? ca.term_id : '';
+  document.getElementById('caTitle').value = ca ? ca.title : '';
+  document.getElementById('caCategory').value = ca ? ca.category : '';
+  document.getElementById('caDescription').value = ca ? ca.description : '';
+  document.getElementById('caContent').value = ca ? ca.content : '';
+  document.getElementById('conceptAntibodyModal').classList.add('show');
+}
+
+function closeConceptAntibodyModal() {
+  document.getElementById('conceptAntibodyModal').classList.remove('show');
+}
+
+async function saveConceptAntibody() {
+  const body = {
+    id: document.getElementById('caId').value.trim(),
+    term_id: document.getElementById('caTermId').value.trim(),
+    title: document.getElementById('caTitle').value.trim(),
+    category: document.getElementById('caCategory').value.trim(),
+    description: document.getElementById('caDescription').value.trim(),
+    content: document.getElementById('caContent').value.trim()
+  };
+  
+  if (!body.id || !body.term_id || !body.title) return showToast('ID、词条ID和标题必填', 'error');
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/concept-antibodies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('保存成功', 'success');
+      closeConceptAntibodyModal();
+      loadConceptAntibodies();
+    } else {
+      showToast(data.error?.message || '保存失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function deleteConceptAntibody(id) {
+  if (!confirm(`确定删除概念抗体 ${id} 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/concept-antibodies/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('删除成功', 'success');
+      loadConceptAntibodies();
+    }
+  } catch {}
+}
+
+// ========== 职业解构管理 ==========
+let careerList = [];
+
+async function loadCareerDeconstruction() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/career-deconstruction`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+    
+    careerList = data.data;
+    
+    const tbody = document.getElementById('careerTable');
+    if (careerList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="empty" style="padding:40px">暂无职业</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = careerList.map(c => `
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#A0A0B0">${c.id}</td>
+        <td><span class="hot-badge">${c.category}</span></td>
+        <td style="font-weight:500;color:#1A1A2E">${c.name}</td>
+        <td>${c.salary || '-'}</td>
+        <td>${c.education || '-'}</td>
+        <td>${c.duration || '-'}</td>
+        <td>${c.display_order || 0}</td>
+        <td>
+          <button class="btn-icon" onclick='openCareerModal(${JSON.stringify(c).replace(/'/g,"&#39;")})'>编辑</button>
+          <button class="btn-icon delete" onclick="deleteCareer('${c.id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch {
+    document.getElementById('careerTable').innerHTML = `<tr><td colspan="8" class="empty" style="padding:40px">加载失败</td></tr>`;
+  }
+}
+
+function openCareerModal(c = null) {
+  document.getElementById('careerTitle').textContent = c ? '编辑职业' : '新增职业';
+  document.getElementById('careerId').value = c ? c.id : '';
+  document.getElementById('careerId').disabled = !!c;
+  document.getElementById('careerCategory').value = c ? c.category : '芯片设计';
+  document.getElementById('careerName').value = c ? c.name : '';
+  document.getElementById('careerSalary').value = c ? c.salary : '';
+  document.getElementById('careerEducation').value = c ? c.education : '';
+  document.getElementById('careerDuration').value = c ? c.duration : '';
+  document.getElementById('careerDisplayOrder').value = c ? c.display_order : '0';
+  document.getElementById('careerDescription').value = c ? c.description : '';
+  document.getElementById('careerModal').classList.add('show');
+}
+
+function closeCareerModal() {
+  document.getElementById('careerModal').classList.remove('show');
+}
+
+async function saveCareer() {
+  const body = {
+    id: document.getElementById('careerId').value.trim(),
+    category: document.getElementById('careerCategory').value,
+    name: document.getElementById('careerName').value.trim(),
+    salary: document.getElementById('careerSalary').value.trim(),
+    education: document.getElementById('careerEducation').value.trim(),
+    duration: document.getElementById('careerDuration').value.trim(),
+    description: document.getElementById('careerDescription').value.trim(),
+    display_order: parseInt(document.getElementById('careerDisplayOrder').value) || 0
+  };
+  
+  if (!body.id || !body.category || !body.name || !body.description) {
+    return showToast('ID、分类、职业名称和描述必填', 'error');
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/career-deconstruction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('保存成功', 'success');
+      closeCareerModal();
+      loadCareerDeconstruction();
+    } else {
+      showToast(data.error?.message || '保存失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function deleteCareer(id) {
+  if (!confirm(`确定删除职业 ${id} 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/career-deconstruction/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('删除成功', 'success');
+      loadCareerDeconstruction();
+    }
+  } catch {}
+}
+
+// ========== 岗位拆解管理 ==========
+let industryList = [];
+
+async function loadIndustryDeconstruction() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/industry-deconstruction`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (!data.success) return;
+    
+    industryList = data.data;
+    
+    const tbody = document.getElementById('industryTable');
+    if (industryList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty" style="padding:40px">暂无产业/岗位</td></tr>`;
+      return;
+    }
+    
+    tbody.innerHTML = industryList.map(i => `
+      <tr>
+        <td style="font-family:monospace;font-size:12px;color:#A0A0B0">${i.id}</td>
+        <td style="font-weight:500;color:#1A1A2E">${i.name}</td>
+        <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.description}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${i.core_desc || '-'}</td>
+        <td>${i.display_order || 0}</td>
+        <td>
+          <button class="btn-icon" onclick='openIndustryModal(${JSON.stringify(i).replace(/'/g,"&#39;")})'>编辑</button>
+          <button class="btn-icon delete" onclick="deleteIndustry('${i.id}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch {
+    document.getElementById('industryTable').innerHTML = `<tr><td colspan="6" class="empty" style="padding:40px">加载失败</td></tr>`;
+  }
+}
+
+function openIndustryModal(i = null) {
+  document.getElementById('industryTitle').textContent = i ? '编辑产业/岗位' : '新增产业/岗位';
+  document.getElementById('industryId').value = i ? i.id : '';
+  document.getElementById('industryId').disabled = !!i;
+  document.getElementById('industryName').value = i ? i.name : '';
+  document.getElementById('industryCoreDesc').value = i ? i.core_desc : '从芯片到系统，拆解万亿产业链的核心岗位与利润分配';
+  document.getElementById('industryDescription').value = i ? i.description : '';
+  document.getElementById('industryDisplayOrder').value = i ? i.display_order : '0';
+  document.getElementById('industryModal').classList.add('show');
+}
+
+function closeIndustryModal() {
+  document.getElementById('industryModal').classList.remove('show');
+}
+
+async function saveIndustry() {
+  const body = {
+    id: document.getElementById('industryId').value.trim(),
+    name: document.getElementById('industryName').value.trim(),
+    core_desc: document.getElementById('industryCoreDesc').value.trim(),
+    description: document.getElementById('industryDescription').value.trim(),
+    display_order: parseInt(document.getElementById('industryDisplayOrder').value) || 0
+  };
+  
+  if (!body.id || !body.name || !body.description) {
+    return showToast('ID、名称和描述必填', 'error');
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/industry-deconstruction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('保存成功', 'success');
+      closeIndustryModal();
+      loadIndustryDeconstruction();
+    } else {
+      showToast(data.error?.message || '保存失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function deleteIndustry(id) {
+  if (!confirm(`确定删除产业/岗位 ${id} 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/admin/industry-deconstruction/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('删除成功', 'success');
+      loadIndustryDeconstruction();
+    }
+  } catch {}
+}
+
+// ========== 提交审核 ==========
+let submissionList = [];
+
+async function loadSubmissions() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/submissions/admin`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    submissionList = data.data || data || [];
+    if (!Array.isArray(submissionList)) submissionList = [];
+
+    // 统计
+    let pending = 0, approved = 0, rejected = 0;
+    submissionList.forEach(s => {
+      const status = (s.status || 'pending').toLowerCase();
+      if (status === 'pending' || status === '待审核') pending++;
+      else if (status === 'approved' || status === '已通过') approved++;
+      else if (status === 'rejected' || status === '已拒绝') rejected++;
+    });
+    document.getElementById('submissionsStats').innerHTML = `
+      <div class="stat-card"><div class="number" style="color:#D4853B">${pending}</div><div class="label">待审核</div></div>
+      <div class="stat-card"><div class="number" style="color:#27ae60">${approved}</div><div class="label">已通过</div></div>
+      <div class="stat-card"><div class="number" style="color:#e74c3c">${rejected}</div><div class="label">已拒绝</div></div>
+    `;
+
+    const tbody = document.getElementById('submissionsTable');
+    const emptyEl = document.getElementById('submissionsEmpty');
+    if (submissionList.length === 0) {
+      tbody.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    tbody.innerHTML = submissionList.map(s => {
+      const type = s.submission_type || '-';
+      const name = s.term_name || s.term1 || '-';
+      const discipline = DISCIPLINE_NAMES[s.term_discipline] || s.term_discipline || '-';
+      const preview = s.term_translation || s.explanation || '-';
+      const status = (s.status || 'pending').toLowerCase();
+      const statusBadge = status === 'pending' || status === '待审核'
+        ? '<span class="hot-badge" style="background:#D4853B20;color:#D4853B">待审核</span>'
+        : status === 'approved' || status === '已通过'
+          ? '<span class="hot-badge" style="background:#27ae6020;color:#27ae60">已通过</span>'
+          : '<span class="hot-badge" style="background:#e74c3c20;color:#e74c3c">已拒绝</span>';
+      const canReview = status === 'pending' || status === '待审核';
+      return `<tr>
+        <td style="font-family:monospace;color:#A0A0B0">${escapeHtml(String(s.id))}</td>
+        <td>${escapeHtml(type === 'term' ? '术语' : '同物异名')}</td>
+        <td style="font-weight:500;color:#1A1A2E;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(name)}</td>
+        <td><span class="disc-badge" style="background:${DISCIPLINE_COLORS[s.term_discipline] || '#8B7D6B'}20;color:${DISCIPLINE_COLORS[s.term_discipline] || '#8B7D6B'}">${escapeHtml(discipline)}</span></td>
+        <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6B6B7B">${escapeHtml(preview)}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn-icon" onclick="viewSubmissionDetail(${s.id})">详情</button>
+          <button class="btn-icon" style="${canReview ? 'color:#27ae60' : 'opacity:0.4'}" onclick="approveSubmission(${s.id}, ${canReview})">通过</button>
+          <button class="btn-icon delete" style="${canReview ? '' : 'opacity:0.4'}" onclick="rejectSubmission(${s.id}, ${canReview})">拒绝</button>
+          <button class="btn-icon delete" onclick="deleteSubmission(${s.id})">删除</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    console.error(e);
+    document.getElementById('submissionsTable').innerHTML = `<tr><td colspan="7" class="empty" style="padding:40px">加载失败</td></tr>`;
+    document.getElementById('submissionsStats').innerHTML = `
+      <div class="stat-card"><div class="number">-</div><div class="label">待审核</div></div>
+      <div class="stat-card"><div class="number">-</div><div class="label">已通过</div></div>
+      <div class="stat-card"><div class="number">-</div><div class="label">已拒绝</div></div>
+    `;
+  }
+}
+
+async function viewSubmissionDetail(id) {
+  const submission = submissionList.find(s => s.id === id);
+  if (!submission) return;
+  
+  const isTerm = submission.submission_type === 'term';
+  const discipline = DISCIPLINE_NAMES[submission.term_discipline] || submission.term_discipline || '-';
+  const status = (submission.status || 'pending').toLowerCase();
+  const canReview = status === 'pending' || status === '待审核';
+  
+  // 解析别名
+  let aliasesHtml = '-';
+  try {
+    const aliases = typeof submission.term_aliases === 'string' ? JSON.parse(submission.term_aliases || '[]') : (submission.term_aliases || []);
+    if (aliases.length > 0) {
+      aliasesHtml = aliases.map(a => `<span class="disc-badge" style="background:#F7F5F0;margin:2px;display:inline-block">${escapeHtml(DISCIPLINE_NAMES[a.discipline] || a.discipline)}：${escapeHtml(a.name)}</span>`).join(' ');
+    }
+  } catch {}
+  
+  // 格式化时间
+  const createdTime = submission.created_at ? new Date(submission.created_at * 1000).toLocaleString('zh-CN') : '-';
+  
+  let detailHtml = `
+    <div style="margin-bottom:20px;padding:12px 16px;background:#F7F5F0;border-radius:10px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <span style="font-weight:600;color:#1A1A2E;font-size:15px">${isTerm ? '📝 术语提交' : '🔗 同物异名提交'}</span>
+        <span style="margin-left:12px;font-size:13px;color:#6B6B7B">ID: ${submission.id} · ${createdTime}</span>
+      </div>
+      <span class="hot-badge" style="background:${status === 'pending' ? '#D4853B20' : status === 'approved' ? '#27ae6020' : '#e74c3c20'};color:${status === 'pending' ? '#D4853B' : status === 'approved' ? '#27ae60' : '#e74c3c'}">${status === 'pending' ? '待审核' : status === 'approved' ? '已通过' : '已拒绝'}</span>
+    </div>
+  `;
+  
+  if (isTerm) {
+    detailHtml += `
+      <div style="display:grid;gap:16px">
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">术语名称</div>
+          <div style="font-size:18px;font-weight:600;color:#1A1A2E;font-family:'PingFang SC',sans-serif">${escapeHtml(submission.term_name || '-')}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+            <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">所属学科</div>
+            <span class="disc-badge" style="background:${DISCIPLINE_COLORS[submission.term_discipline] || '#8B7D6B'}20;color:${DISCIPLINE_COLORS[submission.term_discipline] || '#8B7D6B'};font-size:14px;padding:4px 10px">${escapeHtml(discipline)}</span>
+          </div>
+          <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+            <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">联系方式</div>
+            <div style="color:#1A1A2E">${escapeHtml(submission.contact || '-')}</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">大白话翻译 <span style="color:#D4853B">*必填</span></div>
+          <div style="font-size:16px;font-weight:500;color:#D4853B">${escapeHtml(submission.term_translation || '-')}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">本质解释</div>
+          <div style="color:#1A1A2E;line-height:1.6">${escapeHtml(submission.term_essence || '-')}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">防忽悠提示</div>
+          <div style="color:#A45D6A;line-height:1.6;font-style:italic">${escapeHtml(submission.term_tip || '-')}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">跨学科别名</div>
+          <div>${aliasesHtml}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    detailHtml += `
+      <div style="display:grid;gap:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+            <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">术语 1</div>
+            <div style="font-size:16px;font-weight:600;color:#1A1A2E">${escapeHtml(submission.term1 || '-')}</div>
+          </div>
+          <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+            <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">术语 2</div>
+            <div style="font-size:16px;font-weight:600;color:#1A1A2E">${escapeHtml(submission.term2 || '-')}</div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">联系方式</div>
+          <div style="color:#1A1A2E">${escapeHtml(submission.contact || '-')}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">共同本质</div>
+          <div style="color:#1A1A2E;line-height:1.6">${escapeHtml(submission.explanation || '-')}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E5E2DA;border-radius:12px;padding:16px">
+          <div style="font-size:12px;color:#A0A0B0;margin-bottom:6px">应用场景举例</div>
+          <div style="color:#1A1A2E;line-height:1.6">${escapeHtml(submission.examples || '-')}</div>
+        </div>
+      </div>
+    `;
+  }
+  
+  document.getElementById('submissionDetailTitle').textContent = `提交详情 #${id}`;
+  document.getElementById('submissionDetailBody').innerHTML = detailHtml;
+  
+  // 底部按钮
+  let footerHtml = '<button class="btn-cancel" onclick="closeSubmissionDetailModal()">关闭</button>';
+  if (canReview) {
+    footerHtml = `<button class="btn-cancel" onclick="closeSubmissionDetailModal()">关闭</button>
+      <button onclick="rejectSubmission(${id}, true);closeSubmissionDetailModal()" style="padding:10px 20px;background:#e74c3c;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:500">拒绝</button>
+      <button onclick="approveSubmission(${id}, true);closeSubmissionDetailModal()" style="padding:10px 20px;background:#27ae60;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:500">通过审核</button>`;
+  }
+  document.getElementById('submissionDetailFooter').innerHTML = footerHtml;
+  
+  document.getElementById('submissionDetailModal').classList.add('show');
+}
+
+function closeSubmissionDetailModal() {
+  document.getElementById('submissionDetailModal').classList.remove('show');
+}
+
+async function approveSubmission(id, canReview) {
+  if (!canReview) return;
+  if (!confirm(`确认通过这条提交 (ID: ${id}) 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/submissions/admin/${id}/approve`, {
+      method: 'POST',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success || res.ok) {
+      showToast('已通过', 'success');
+      loadSubmissions();
+    } else {
+      showToast(data.error?.message || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function rejectSubmission(id, canReview) {
+  if (!canReview) return;
+  if (!confirm(`确认拒绝这条提交 (ID: ${id}) 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/submissions/admin/${id}/reject`, {
+      method: 'POST',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success || res.ok) {
+      showToast('已拒绝', 'success');
+      loadSubmissions();
+    } else {
+      showToast(data.error?.message || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function deleteSubmission(id) {
+  if (!confirm(`确认删除这条提交 (ID: ${id}) 吗？删除后无法恢复。`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/submissions/admin/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success || res.ok) {
+      showToast('已删除', 'success');
+      loadSubmissions();
+    } else {
+      showToast(data.error?.message || '删除失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+// ========== 对比管理 ==========
+let comparisonList = [];
+let editingComparisonId = null;
+
+async function loadComparisons() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/comparisons`, {
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    comparisonList = (data.data || data || []);
+    if (!Array.isArray(comparisonList)) comparisonList = [];
+
+    const tbody = document.getElementById('comparisonsTable');
+    const emptyEl = document.getElementById('comparisonsEmpty');
+    if (comparisonList.length === 0) {
+      tbody.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    tbody.innerHTML = comparisonList.map(c => `
+      <tr>
+        <td style="font-family:monospace;color:#A0A0B0">${escapeHtml(String(c.id))}</td>
+        <td style="font-weight:500;color:#1A1A2E">${escapeHtml(c.title || '')}</td>
+        <td>${escapeHtml(c.concept_a_name || '')} <span style="color:#A0A0B0;font-size:12px">(${escapeHtml(c.concept_a_discipline || '')})</span></td>
+        <td>${escapeHtml(c.concept_b_name || '')} <span style="color:#A0A0B0;font-size:12px">(${escapeHtml(c.concept_b_discipline || '')})</span></td>
+        <td style="max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6B6B7B">${escapeHtml(c.summary || '')}</td>
+        <td>
+          <button class="btn-icon" onclick='openComparisonModal(${JSON.stringify(c).replace(/'/g, "&#39;")})'>编辑</button>
+          <button class="btn-icon delete" onclick="deleteComparison('${escapeHtml(String(c.id))}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+    document.getElementById('comparisonsTable').innerHTML = `<tr><td colspan="6" class="empty" style="padding:40px">加载失败</td></tr>`;
+  }
+}
+
+function openComparisonModal(cmp = null) {
+  editingComparisonId = cmp ? String(cmp.id) : null;
+  document.getElementById('comparisonModalTitle').textContent = cmp ? `编辑对比 - ${escapeHtml(cmp.title || '')}` : '新建对比';
+  const ids = ['cmpTitle','cmpA_name','cmpA_discipline','cmpA_plain','cmpA_symptom','cmpA_analogy','cmpA_fix','cmpB_name','cmpB_discipline','cmpB_plain','cmpB_symptom','cmpB_analogy','cmpB_fix','cmpSummary'];
+  const defaults = cmp ? {
+    cmpTitle: cmp.title, cmpA_name: cmp.concept_a_name, cmpA_discipline: cmp.concept_a_discipline,
+    cmpA_plain: cmp.concept_a_plain, cmpA_symptom: cmp.concept_a_symptom, cmpA_analogy: cmp.concept_a_analogy,
+    cmpA_fix: cmp.concept_a_fix, cmpB_name: cmp.concept_b_name, cmpB_discipline: cmp.concept_b_discipline,
+    cmpB_plain: cmp.concept_b_plain, cmpB_symptom: cmp.concept_b_symptom, cmpB_analogy: cmp.concept_b_analogy,
+    cmpB_fix: cmp.concept_b_fix, cmpSummary: cmp.summary
+  } : {};
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = defaults[id] || '';
+  });
+  const relEl = document.getElementById('cmpRelationship');
+  if (relEl) relEl.value = cmp?.relationship_type || '关联性';
+  document.getElementById('comparisonModal').classList.add('show');
+}
+
+function closeComparisonModal() {
+  document.getElementById('comparisonModal').classList.remove('show');
+  editingComparisonId = null;
+}
+
+async function saveComparison() {
+  const body = {
+    title: document.getElementById('cmpTitle').value.trim(),
+    concept_a_name: document.getElementById('cmpA_name').value.trim(),
+    concept_a_discipline: document.getElementById('cmpA_discipline').value.trim(),
+    concept_a_plain: document.getElementById('cmpA_plain').value.trim(),
+    concept_a_symptom: document.getElementById('cmpA_symptom').value.trim(),
+    concept_a_analogy: document.getElementById('cmpA_analogy').value.trim(),
+    concept_a_fix: document.getElementById('cmpA_fix').value.trim(),
+    concept_b_name: document.getElementById('cmpB_name').value.trim(),
+    concept_b_discipline: document.getElementById('cmpB_discipline').value.trim(),
+    concept_b_plain: document.getElementById('cmpB_plain').value.trim(),
+    concept_b_symptom: document.getElementById('cmpB_symptom').value.trim(),
+    concept_b_analogy: document.getElementById('cmpB_analogy').value.trim(),
+    concept_b_fix: document.getElementById('cmpB_fix').value.trim(),
+    summary: document.getElementById('cmpSummary').value.trim(),
+    relationship_type: document.getElementById('cmpRelationship').value
+  };
+  if (!body.title || !body.concept_a_name || !body.concept_b_name) {
+    return showToast('标题和两个概念名称必填', 'error');
+  }
+
+  try {
+    let res;
+    if (editingComparisonId) {
+      res = await fetch(`${API_BASE}/api/v1/comparisons/${editingComparisonId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify(body)
+      });
+    } else {
+      res = await fetch(`${API_BASE}/api/v1/comparisons`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+        body: JSON.stringify(body)
+      });
+    }
+    const data = await res.json();
+    if (data.success || res.ok) {
+      showToast(editingComparisonId ? '更新成功' : '创建成功', 'success');
+      closeComparisonModal();
+      loadComparisons();
+    } else {
+      showToast(data.error?.message || '保存失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function deleteComparison(id) {
+  if (!confirm(`确定删除对比 ${id} 吗？`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/comparisons/${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-token': ADMIN_TOKEN }
+    });
+    const data = await res.json();
+    if (data.success || res.ok) {
+      showToast('删除成功', 'success');
+      loadComparisons();
+    } else {
+      showToast(data.error?.message || '删除失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function aiGenerateComparison() {
+  const nameA = document.getElementById('cmpA_name').value.trim();
+  const disciplineA = document.getElementById('cmpA_discipline').value.trim();
+  const nameB = document.getElementById('cmpB_name').value.trim();
+  const disciplineB = document.getElementById('cmpB_discipline').value.trim();
+  if (!nameA || !disciplineA || !nameB || !disciplineB) {
+    return showToast('请先填概念 A/B 的名称和学科', 'error');
+  }
+
+  showToast('AI 生成中，请稍候...', 'success');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ai/generate-comparison`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({
+        provider: 'custom',
+        apiKey: '',
+        nameA: nameA,
+        nameB: nameB,
+        disciplineA: disciplineA,
+        disciplineB: disciplineB
+      })
+    });
+    const data = await res.json();
+    const generated = data.data || data;
+    if (!generated) {
+      return showToast('AI 返回为空', 'error');
+    }
+    if (generated.title) document.getElementById('cmpTitle').value = generated.title;
+    if (generated.concept_a_plain) document.getElementById('cmpA_plain').value = generated.concept_a_plain;
+    if (generated.concept_a_symptom) document.getElementById('cmpA_symptom').value = generated.concept_a_symptom;
+    if (generated.concept_a_analogy) document.getElementById('cmpA_analogy').value = generated.concept_a_analogy;
+    if (generated.concept_a_fix) document.getElementById('cmpA_fix').value = generated.concept_a_fix;
+    if (generated.concept_b_plain) document.getElementById('cmpB_plain').value = generated.concept_b_plain;
+    if (generated.concept_b_symptom) document.getElementById('cmpB_symptom').value = generated.concept_b_symptom;
+    if (generated.concept_b_analogy) document.getElementById('cmpB_analogy').value = generated.concept_b_analogy;
+    if (generated.concept_b_fix) document.getElementById('cmpB_fix').value = generated.concept_b_fix;
+    if (generated.summary) document.getElementById('cmpSummary').value = generated.summary;
+    if (generated.relationship_type) document.getElementById('cmpRelationship').value = generated.relationship_type;
+    showToast('AI 内容已填充，请检查后保存', 'success');
+  } catch {
+    showToast('AI 生成失败', 'error');
+  }
+}
+
+// ========== CSV 导入导出辅助函数 ==========
+async function _downloadCSV(path, filename) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { headers: { 'x-admin-token': ADMIN_TOKEN } });
+    const text = await res.text();
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('导出成功', 'success');
+  } catch (e) {
+    console.error(e);
+    showToast('导出失败', 'error');
+  }
+}
+
+function _uploadCSV(onUpload) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.csv,.txt';
+  input.onchange = function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async function (ev) { await onUpload(ev.target.result, file.name); };
+    reader.onerror = function () { showToast('文件读取失败', 'error'); };
+    reader.readAsText(file, 'utf-8');
+  };
+  input.click();
+}
+
+async function _postCSV(path, content, onSuccess, filename) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+      body: JSON.stringify({ content }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const d = data.data || {};
+      const total = d.total ?? '(未知)';
+      const created = d.success ?? d.created ?? 0;
+      const failed = d.failed ?? 0;
+      let msg = `导入完成：共${total}条，成功${created}条`;
+      if (failed > 0) msg += `，失败${failed}条`;
+      showToast(msg, failed > 0 ? 'error' : 'success');
+      onSuccess && onSuccess();
+    } else {
+      showToast(data.error?.message || '导入失败', 'error');
+    }
+  } catch (e) {
+    console.error(e);
+    showToast('网络错误', 'error');
+  }
+}
+
+async function importTermsCSV() {
+  _uploadCSV(async (content) => {
+    await _postCSV('/api/v1/admin/terms/import/csv', content, () => { loadTerms(currentPage); loadDashboard(); });
+  });
+}
+async function exportAntibodiesCSV() { await _downloadCSV('/api/v1/admin/antibody/export/csv', `antibodies_${Date.now()}.csv`); }
+async function importAntibodiesCSV() { _uploadCSV(async (content) => { await _postCSV('/api/v1/admin/antibody/import/csv', content, loadConceptAntibodies); }); }
+
+async function exportCareerCSV() { await _downloadCSV('/api/v1/admin/career/export/csv', `career_${Date.now()}.csv`); }
+async function importCareerCSV() { _uploadCSV(async (content) => { await _postCSV('/api/v1/admin/career/import/csv', content, loadCareerDeconstruction); }); }
+
+async function exportJobsCSV() { await _downloadCSV('/api/v1/admin/jobs/export/csv', `jobs_${Date.now()}.csv`); }
+async function importJobsCSV() { _uploadCSV(async (content) => { await _postCSV('/api/v1/admin/jobs/import/csv', content, loadJobs); }); }
+
+// ========== 工具 ==========
+function showToast(msg, type = 'success') {
+  const div = document.createElement('div');
+  div.className = `toast ${type}`;
+  div.textContent = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+</script>
+</body>
+</html>

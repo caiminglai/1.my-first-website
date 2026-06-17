@@ -1,0 +1,410 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 20% 96%;
+    --foreground: 240 29% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 29% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 29% 14%;
+    --primary: 30 60% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 10% 90%;
+    --secondary-foreground: 240 29% 14%;
+    --muted: 40 10% 92%;
+    --muted-foreground: 240 6% 46%;
+    --accent: 30 60% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 12% 88%;
+    --input: 40 12% 88%;
+    --ring: 30 60% 53%;
+    --radius: 0.625rem;
+    --sidebar-background: 40 20% 96%;
+    --sidebar-foreground: 240 29% 14%;
+    --sidebar-primary: 30 60% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 10% 92%;
+    --sidebar-accent-foreground: 240 29% 14%;
+    --sidebar-border: 40 12% 88%;
+    --sidebar-ring: 30 60% 53%;
+
+    --warm-bg: #f7f5f0;
+    --warm-dark: #1a1a2e;
+    --warm-accent: #d4853b;
+    --warm-text: #6b6b7b;
+    --warm-card: #ffffff;
+    --warm-border: #e5e2da;
+    --warm-deeper: #141426;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background-color: #f7f5f0;
+    color: #1a1a2e;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  .dark {
+    --background: 30 10% 10%;
+    --foreground: 40 15% 90%;
+    --card: 30 8% 14%;
+    --card-foreground: 40 15% 90%;
+    --popover: 30 8% 14%;
+    --popover-foreground: 40 15% 90%;
+    --primary: 30 70% 55%;
+    --primary-foreground: 30 10% 10%;
+    --secondary: 30 8% 18%;
+    --secondary-foreground: 40 15% 90%;
+    --muted: 30 8% 20%;
+    --muted-foreground: 40 10% 65%;
+    --accent: 30 70% 55%;
+    --accent-foreground: 30 10% 10%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 40 15% 90%;
+    --border: 30 8% 22%;
+    --input: 30 8% 22%;
+    --ring: 30 70% 55%;
+    --sidebar-background: 30 10% 10%;
+    --sidebar-foreground: 40 15% 90%;
+    --sidebar-primary: 30 70% 55%;
+    --sidebar-primary-foreground: 30 10% 10%;
+    --sidebar-accent: 30 8% 18%;
+    --sidebar-accent-foreground: 40 15% 90%;
+    --sidebar-border: 30 8% 22%;
+    --sidebar-ring: 30 70% 55%;
+
+    --warm-bg: #1c1b1a;
+    --warm-dark: #0f0e0d;
+    --warm-accent: #e8a85a;
+    --warm-text: #e8e6e0;
+    --warm-card: #252423;
+    --warm-border: #3a3835;
+    --warm-deeper: #0f0e0d;
+  }
+
+  .dark body {
+    background-color: var(--warm-bg);
+    color: var(--warm-text);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'LXGW WenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ===========================================
+   🌙 深色模式全局适配
+   把所有硬编码的白色背景和文字在 .dark 下强制重写
+   =========================================== */
+
+.dark {
+  /* 通用白色 → 暖深卡 */
+  .bg-white {
+    background-color: var(--warm-card) !important;
+  }
+
+  /* 半透明白 → 半透明暖深 */
+  .bg-white\/80 {
+    background-color: rgba(37, 36, 35, 0.85) !important;
+  }
+  .bg-white\/95 {
+    background-color: rgba(37, 36, 35, 0.95) !important;
+  }
+  .bg-white\/90 {
+    background-color: rgba(37, 36, 35, 0.9) !important;
+  }
+  .bg-white\/70 {
+    background-color: rgba(37, 36, 35, 0.75) !important;
+  }
+  .bg-white\/50 {
+    background-color: rgba(37, 36, 35, 0.55) !important;
+  }
+  .bg-white\/20 {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+  }
+  .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  .bg-white\/0 {
+    background-color: transparent !important;
+  }
+
+  /* 灰白文字 / 浅色文字在深色模式下更柔和 */
+  .text-gray-900 {
+    color: #f0eee7 !important;
+  }
+  .text-gray-800 {
+    color: #e8e6e0 !important;
+  }
+  .text-gray-700 {
+    color: #d4d1c8 !important;
+  }
+  .text-gray-600 {
+    color: #b5b2a8 !important;
+  }
+  .text-gray-500 {
+    color: #8a8780 !important;
+  }
+  .text-gray-400 {
+    color: #6e6c66 !important;
+  }
+  .text-black {
+    color: #f0eee7 !important;
+  }
+
+  /* 灰白边框 */
+  .border-gray-100 {
+    border-color: rgba(58, 56, 53, 0.6) !important;
+  }
+  .border-gray-200 {
+    border-color: rgba(58, 56, 53, 0.7) !important;
+  }
+  .border-gray-300 {
+    border-color: rgba(58, 56, 53, 0.8) !important;
+  }
+
+  /* bg-gray-50 / bg-gray-100 */
+  .bg-gray-50 {
+    background-color: #2a2928 !important;
+  }
+  .bg-gray-100 {
+    background-color: #2f2d2c !important;
+  }
+  .bg-gray-200 {
+    background-color: #3a3835 !important;
+  }
+
+  /* 主题浅色背景变体 */
+  .bg-warm-bg\/50 {
+    background-color: rgba(37, 36, 35, 0.6) !important;
+  }
+
+  /* ============ 文字色深度修复 ============ */
+  /* text-warm-dark 在深色模式下必须用暖米白，否则黑字黑底看不见 */
+  .text-warm-dark {
+    color: #f0eee7 !important;
+  }
+  /* 文字链接 hover 状态 */
+  .hover\:text-warm-dark:hover {
+    color: #f0eee7 !important;
+  }
+  /* 边框色 */
+  .border-warm-border {
+    border-color: var(--warm-border) !important;
+  }
+  /* 占位符颜色 */
+  .placeholder\:text-warm-text::placeholder {
+    color: rgba(232, 230, 224, 0.45) !important;
+  }
+  /* 一些组件内联的 bg-warm-bg 容器 */
+  .bg-warm-bg {
+    background-color: var(--warm-bg) !important;
+  }
+  .bg-warm-card {
+    background-color: var(--warm-card) !important;
+  }
+
+  /* ============ 输入框、textarea 内的白底 ============ */
+  input,
+  textarea,
+  select {
+    background-color: var(--warm-card) !important;
+    color: var(--warm-text) !important;
+  }
+
+  /* ============ 浅色文字降级（科技职业抗体页） ============ */
+  /* 这些浅色系（amber-700/800/900、green-700/800）在深色背景下几乎看不见 */
+  .text-amber-700 {
+    color: #fcd34d !important;
+  }
+  .text-amber-800 {
+    color: #fbbf24 !important;
+  }
+  .text-amber-900 {
+    color: #f59e0b !important;
+  }
+  .text-amber-600 {
+    color: #fcd34d !important;
+  }
+  .text-amber-500 {
+    color: #fcd34d !important;
+  }
+  .text-amber-400 {
+    color: #fbbf24 !important;
+  }
+
+  .text-red-700 {
+    color: #fca5a5 !important;
+  }
+  .text-red-800 {
+    color: #fca5a5 !important;
+  }
+  .text-red-900 {
+    color: #fca5a5 !important;
+  }
+  .text-red-600 {
+    color: #fca5a5 !important;
+  }
+  .text-red-500 {
+    color: #fca5a5 !important;
+  }
+  .text-red-400 {
+    color: #fca5a5 !important;
+  }
+
+  .text-green-700 {
+    color: #86efac !important;
+  }
+  .text-green-800 {
+    color: #86efac !important;
+  }
+  .text-green-900 {
+    color: #86efac !important;
+  }
+  .text-green-600 {
+    color: #86efac !important;
+  }
+  .text-green-500 {
+    color: #86efac !important;
+  }
+  .text-green-400 {
+    color: #86efac !important;
+  }
+
+  /* 浅色文字背景块 */
+  .bg-amber-200 {
+    background-color: rgba(251, 191, 36, 0.18) !important;
+  }
+  .bg-red-100 {
+    background-color: rgba(248, 113, 113, 0.18) !important;
+  }
+  .bg-red-500\/10 {
+    background-color: rgba(248, 113, 113, 0.18) !important;
+  }
+  .bg-green-200 {
+    background-color: rgba(134, 239, 172, 0.18) !important;
+  }
+  .bg-red-500\/20 {
+    background-color: rgba(248, 113, 113, 0.28) !important;
+  }
+  .border-red-500\/20 {
+    border-color: rgba(248, 113, 113, 0.4) !important;
+  }
+  .bg-green-50 {
+    background-color: rgba(134, 239, 172, 0.12) !important;
+  }
+  .bg-amber-50 {
+    background-color: rgba(251, 191, 36, 0.12) !important;
+  }
+  .bg-red-50 {
+    background-color: rgba(248, 113, 113, 0.12) !important;
+  }
+
+  /* 阴影颜色调整：深色模式下去掉白色过强的高光 */
+  .shadow-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  .shadow-lg {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+  .shadow-xl {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+  }
+  .shadow-2xl {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+  }
+  .shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* ============ 移动端优化 ============ */
+@media (max-width: 768px) {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* 防止用户在输入时自动放大 */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* 搜索建议列表可滚动 */
+  .suggestions-list {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  [role='button'],
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .pill,
+  .filter-pill {
+    min-width: auto;
+    padding: 8px 14px;
+  }
+}
+
+/* 小屏特化 */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.75rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem !important;
+  }
+
+  /* 标签区域在小屏更紧凑 */
+  .category-tabs {
+    gap: 6px !important;
+  }
+}
