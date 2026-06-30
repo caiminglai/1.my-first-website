@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router'
 import { useDisciplines } from '@/hooks/useDisciplines'
 import FilterPill from '@/components/FilterPill'
 import { SEARCH_DEBOUNCE_MS, SEARCH_CLICK_OUTSIDE_DELAY_MS } from '@/lib/utils'
-import { API_BASE_URL } from '@/api/config'
+import { searchTerms } from '@/api/services'
+import type { SearchResult } from '@/api/types'
 
 const SEARCH_HISTORY_KEY = 'search_history'
 const MAX_HISTORY = 8
@@ -28,15 +29,7 @@ interface SearchSuggestion {
   discipline: string
 }
 
-// API 搜索结果项类型
-interface APISearchItem {
-  term: {
-    id: string
-    name: string
-    translation: string
-    discipline: string
-  }
-}
+// API 搜索结果项类型已迁移到 @/api/types (SearchResult)
 
 interface SearchSectionProps {
   query: string
@@ -132,11 +125,10 @@ export default function SearchSection({
     setIsLoading(true)
     setHasSearched(true)
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/terms/search?q=${encodeURIComponent(trimmed)}&limit=8`)
-      const data = await res.json()
-      if (data.success && data.data.results) {
+      const data = await searchTerms(trimmed, 8)
+      if (data.results) {
         setSuggestions(
-          data.data.results.map((item: APISearchItem) => ({
+          data.results.map((item: SearchResult) => ({
             id: item.term.id,
             name: item.term.name,
             translation: item.term.translation,

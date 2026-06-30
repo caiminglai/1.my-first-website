@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, RefreshCw, ShieldCheck } from 'lucide-react'
 import { useDisciplines } from '@/hooks/useDisciplines'
 import type { APITerm } from '@/api/types'
 import { useFavorites } from '@/hooks/useFavorites'
-import { API_BASE_URL } from '@/api/config'
+import { getRandomTerm } from '@/api/services'
 
 interface TodayRecommendProps {
   onHighlightTerm?: (term: APITerm) => void
@@ -21,23 +21,16 @@ export default function TodayRecommend({ onHighlightTerm }: TodayRecommendProps)
     setIsLoading(true)
     setError(null)
     try {
-      const baseUrl = API_BASE_URL
-      const res = await fetch(`${baseUrl}/api/v1/terms/random`)
-      const data = await res.json()
-      if (data.success && data.data) {
-        const t = data.data.term || data.data
-        setTerm({
-          id: t.id,
-          discipline: t.discipline,
-          name: t.name,
-          translation: t.translation,
-          essence: t.essence,
-          tip: t.tip,
-          hot: t.hot || 0,
-        })
-      } else {
-        setError('加载失败')
-      }
+      const t = await getRandomTerm()
+      setTerm({
+        id: t.id,
+        discipline: t.discipline,
+        name: t.name,
+        translation: t.translation,
+        essence: t.essence,
+        tip: t.tip,
+        hot: t.hot || 0,
+      })
     } catch {
       setError('加载失败')
     } finally {

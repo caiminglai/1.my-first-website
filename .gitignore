@@ -187,3 +187,22 @@ $RECYCLE.BIN/
 # 锁文件说明：
 # - package-lock.json 应该提交，以确保依赖版本一致
 # - 本项目已在 app/ 和 backend/ 下各自提交 package-lock.json
+
+
+# ============================================================
+# 13. Obsidian 知识库
+# ============================================================
+# 工作区状态（每次开关 Obsidian 都会变，无需提交）
+obsidian/.obsidian/workspace.json
+obsidian/.obsidian/workspace-mobile.json
+
+# 插件和主题代码（体积大，换环境手动重装）
+obsidian/.obsidian/plugins/
+obsidian/.obsidian/themes/
+
+# 插件运行时数据（缓存、索引等）
+obsidian/.obsidian/plugins/*/data.json
+
+# Obsidian 画布和插件临时文件
+obsidian/**/*.canvas
+obsidian/**/*.base

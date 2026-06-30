@@ -130,7 +130,7 @@ export default function UserSubmission() {
           .map((line) => {
             const parts = line.split(/[:：]/)
             return {
-              discipline: parts[0]?.trim() || 'cross',
+              discipline: parts[0]?.trim() || '跨学科',
               name: parts[1]?.trim() || line,
             }
           })

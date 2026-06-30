@@ -109,7 +109,7 @@ export default function ScenarioReveal() {
           <div className="p-5 space-y-4">
             {scenario.dialogue.map((line, i) => (
               <motion.div
-                key={i}
+                key={`${line.speaker}-${line.text.slice(0, 20)}`}
                 initial={{ opacity: 0, x: line.speaker === '真相' ? 0 : -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.15, duration: 0.3 }}

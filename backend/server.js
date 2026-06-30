@@ -19,10 +19,10 @@ const {
   searchRateLimiter,
   adminRateLimiter,
   sqlInjectionCheck,
-} = require("./middleware/security");
-const { requestLogger, errorLogger } = require("./middleware/logger");
+} = require("./middleware/安全");
+const { requestLogger, errorLogger } = require("./middleware/日志");
 
-const db = require("./db");
+const db = require("./db/入口");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,7 +40,7 @@ app.use(
 );
 
 // ===== 安全层 =====
-app.use(rateLimiter); // 通用限流：100请求/分钟
+app.use(rateLimiter); // 通用限流：1000请求/分钟
 app.use(securityHeaders); // 安全响应头
 app.use(bodySizeLimit); // 请求大小限制
 app.use(sqlInjectionCheck); // SQL注入检测
@@ -67,8 +67,8 @@ app.use(
   }),
 );
 
-// ===== JSON 解析 =====
-app.use(express.json());
+// ===== JSON 解析（limit 与 bodySizeLimit 保持一致：1MB）=====
+app.use(express.json({ limit: "1mb" }));
 
 // ===== 请求日志（带响应状态+耗时+响应体大小）=====
 app.use(requestLogger);
@@ -78,54 +78,59 @@ app.use(requestLogger);
 // 搜索接口更严格限流：60请求/分钟（叠加在通用限流之上）
 app.use("/api/v1/terms/search", searchRateLimiter);
 
-app.use("/api/v1/terms", require("./routes/terms")); // 词条：列表/搜索/详情/学科
-app.use("/api/v1/submissions", require("./routes/submissions")); // 用户提交的同物异名
-app.use("/api/v1/graph", require("./routes/graph")); // 知识图谱：nodes + links
-app.use("/api/v1/comparisons", require("./routes/compare")); // 概念对比
-app.use("/api/v1/scenarios", require("./routes/scenarios")); // 情景还原
-app.use("/api/v1/career", require("./routes/career")); // 职业解构
-app.use("/api/v1/industry", require("./routes/industry")); // 产业岗位
-app.use("/api/v1/antibody", require("./routes/antibody")); // 概念抗体
-app.use("/api/v1/stats", require("./routes/stats")); // 统计 + 健康检查 + 用户反馈
-app.use("/api/v1/jobs", require("./routes/jobs")); // 高薪技术岗（前端动态获取数据）
+app.use("/api/v1/terms", require("./routes/词条")); // 词条：列表/搜索/详情/学科
+app.use("/api/v1/submissions", require("./routes/用户提交")); // 用户提交的同物异名
+app.use("/api/v1/graph", require("./routes/知识图谱")); // 知识图谱：nodes + links
+app.use("/api/v1/comparisons", require("./routes/概念对比")); // 概念对比
+app.use("/api/v1/scenarios", require("./routes/情景还原")); // 情景还原
+app.use("/api/v1/career", require("./routes/职业解构")); // 职业解构
+app.use("/api/v1/industry", require("./routes/产业岗位")); // 产业岗位
+app.use("/api/v1/antibody", require("./routes/概念抗体")); // 概念抗体
+app.use("/api/v1/stats", require("./routes/统计")); // 统计 + 健康检查 + 用户反馈
+app.use("/api/v1/jobs", require("./routes/高薪技术岗")); // 高薪技术岗（前端动态获取数据）
+app.use("/api/v1/semantics", require("./routes/语义")); // 语义词典（同义/反义/简称/上下位）
 
 // ===== 带 /twym/ 前缀的公开路由（与上面同步，保证云服务器部署路径一致性）=====
-app.use("/twym/api/v1/terms", require("./routes/terms"));
-app.use("/twym/api/v1/submissions", require("./routes/submissions"));
-app.use("/twym/api/v1/graph", require("./routes/graph"));
-app.use("/twym/api/v1/comparisons", require("./routes/compare"));
-app.use("/twym/api/v1/scenarios", require("./routes/scenarios"));
-app.use("/twym/api/v1/career", require("./routes/career"));
-app.use("/twym/api/v1/industry", require("./routes/industry"));
-app.use("/twym/api/v1/antibody", require("./routes/antibody"));
-app.use("/twym/api/v1/stats", require("./routes/stats"));
-app.use("/twym/api/v1/jobs", require("./routes/jobs"));
+app.use("/twym/api/v1/terms", require("./routes/词条"));
+app.use("/twym/api/v1/submissions", require("./routes/用户提交"));
+app.use("/twym/api/v1/graph", require("./routes/知识图谱"));
+app.use("/twym/api/v1/comparisons", require("./routes/概念对比"));
+app.use("/twym/api/v1/scenarios", require("./routes/情景还原"));
+app.use("/twym/api/v1/career", require("./routes/职业解构"));
+app.use("/twym/api/v1/industry", require("./routes/产业岗位"));
+app.use("/twym/api/v1/antibody", require("./routes/概念抗体"));
+app.use("/twym/api/v1/stats", require("./routes/统计"));
+app.use("/twym/api/v1/jobs", require("./routes/高薪技术岗"));
+app.use("/twym/api/v1/semantics", require("./routes/语义"));
 
-// ===== 公开路由：AI 问答 =====
-app.use("/api/v1/ai", require("./routes/ai"));
-app.use("/twym/api/v1/ai", require("./routes/ai"));
+// ===== 公开路由：AI 问答（AI接口更严格限流：10请求/分钟，防止API额度被耗尽）=====
+const aiRateLimiter = require("./middleware/安全").createRateLimiter(10, 60 * 1000, "ai");
+app.use("/api/v1/ai", aiRateLimiter);
+app.use("/twym/api/v1/ai", aiRateLimiter);
+app.use("/api/v1/ai", require("./routes/AI问答"));
+app.use("/twym/api/v1/ai", require("./routes/AI问答"));
 
 // ===== 管理路由（活跃，需要 x-admin-token）=====
 // 注意：先注册具体子路由，最后注册通用 admin 路由，避免被截获
 
-// ===== 管理接口统一更严格限流：30请求/分钟（叠加在通用限流之上）
+// ===== 管理接口统一更严格限流：300请求/分钟（叠加在通用限流之上）
 app.use("/api/v1/admin", adminRateLimiter);
 app.use("/twym/api/v1/admin", adminRateLimiter);
 
-app.use("/api/v1/admin/career", require("./routes/career")); // 职业解构管理
-app.use("/api/v1/admin/industry", require("./routes/industry")); // 产业岗位管理
-app.use("/api/v1/admin/antibody", require("./routes/antibody")); // 概念抗体管理
-app.use("/api/v1/admin/jobs", require("./routes/jobs")); // 高薪技术岗管理
-app.use("/api/v1/admin/reload-db", require("./routes/reload")); // 重载数据库
-app.use("/twym/api/v1/admin/reload-db", require("./routes/reload")); // 重载数据库（twym路径）
-app.use("/api/v1/admin", require("./routes/admin")); // 词条/学科/备份/仪表盘
+app.use("/api/v1/admin/career", require("./routes/职业解构")); // 职业解构管理
+app.use("/api/v1/admin/industry", require("./routes/产业岗位")); // 产业岗位管理
+app.use("/api/v1/admin/antibody", require("./routes/概念抗体")); // 概念抗体管理
+app.use("/api/v1/admin/jobs", require("./routes/高薪技术岗")); // 高薪技术岗管理
+app.use("/api/v1/admin/reload-db", require("./routes/重载数据库")); // 重载数据库
+app.use("/twym/api/v1/admin/reload-db", require("./routes/重载数据库")); // 重载数据库（twym路径）
+app.use("/api/v1/admin", require("./routes/管理")); // 词条/学科/备份/仪表盘
 
 // ===== 带 /twym/ 前缀的管理路由（同上同步）=====
-app.use("/twym/api/v1/admin/career", require("./routes/career"));
-app.use("/twym/api/v1/admin/industry", require("./routes/industry"));
-app.use("/twym/api/v1/admin/antibody", require("./routes/antibody"));
-app.use("/twym/api/v1/admin/jobs", require("./routes/jobs"));
-app.use("/twym/api/v1/admin", require("./routes/admin"));
+app.use("/twym/api/v1/admin/career", require("./routes/职业解构"));
+app.use("/twym/api/v1/admin/industry", require("./routes/产业岗位"));
+app.use("/twym/api/v1/admin/antibody", require("./routes/概念抗体"));
+app.use("/twym/api/v1/admin/jobs", require("./routes/高薪技术岗"));
+app.use("/twym/api/v1/admin", require("./routes/管理"));
 
 // ===== 管理后台页面（简易HTML管理界面）=====
 
@@ -255,6 +260,21 @@ app.use((err, req, res, _next) => {
   });
 });
 
+// ===== 全局错误处理（模块作用域）=====
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[Unhandled Rejection] at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[Uncaught Exception]", error);
+  try {
+    db.closeDb();
+  } catch (e) {
+    // 忽略关闭错误
+  }
+  process.exit(1);
+});
+
 // ===== 启动 =====
 async function startServer() {
   try {
@@ -302,18 +322,6 @@ async function startServer() {
       console.log("║    GET  /api/v1/admin/dashboard 统计面板║");
       console.log("╚══════════════════════════════════════════╝");
       console.log("");
-
-      // 全局未处理Promise rejection处理
-      process.on("unhandledRejection", (reason, promise) => {
-        console.error("[Unhandled Rejection] at:", promise, "reason:", reason);
-      });
-
-      // 全局未捕获异常处理
-      process.on("uncaughtException", (error) => {
-        console.error("[Uncaught Exception]", error);
-        db.closeDb();
-        process.exit(1);
-      });
     });
   } catch (error) {
     console.error("[Startup Error]", error);

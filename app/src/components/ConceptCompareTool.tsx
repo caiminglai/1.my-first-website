@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getComparisons, searchTerms } from '@/api/services'
-import type { Comparison } from '@/api/types'
-import type { APITerm } from '@/api/types'
+import type { Comparison, TermAlias, APITerm } from '@/api/types'
 import { DISCIPLINES } from '@/types'
 
 // 15种关系类型的测试数据（前端硬编码，不写入数据库）
@@ -11,13 +10,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_01',
     title: '过拟合 vs 欠拟合',
     concept_a_name: '过拟合',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '把训练数据背下来了，但遇到新题目就不会做',
     concept_a_symptom: '训练集表现完美，测试集一塌糊涂',
     concept_a_analogy: '就像学生背下了所有习题答案，但换了新题就傻眼',
     concept_a_fix: '增加训练数据、用正则化、降低模型复杂度',
     concept_b_name: '欠拟合',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '题目都没学会，连训练数据都答不好',
     concept_b_symptom: '训练集和测试集表现都不好',
     concept_b_analogy: '就像学生连基础都没学会，考试自然不及格',
@@ -29,13 +28,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_02',
     title: '准确率 vs 召回率',
     concept_a_name: '准确率',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '预测正确的占所有预测的比例',
     concept_a_symptom: '宁可漏检也不愿误报时准确率高',
     concept_a_analogy: '像考试的选择题，只选100%确定的答案',
     concept_a_fix: '提高模型置信度阈值、减少假阳性',
     concept_b_name: '召回率',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '预测正确的占所有正确答案的比例',
     concept_b_symptom: '宁可误报也不能漏检时召回率高',
     concept_b_analogy: '像安检，宁可多报警几次也不能漏过危险品',
@@ -47,13 +46,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_03',
     title: '监督学习 vs 无监督学习',
     concept_a_name: '监督学习',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '有标准答案的学习，就像有老师批改作业',
     concept_a_symptom: '需要大量标注数据，成本高但效果好',
     concept_a_analogy: '像学生在老师指导下做练习题',
     concept_a_fix: '积累标注数据、使用预训练模型',
     concept_b_name: '无监督学习',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '没有标准答案，自己发现规律',
     concept_b_symptom: '不需要标注数据，但结果解释性差',
     concept_b_analogy: '像让学生自己总结教材中的规律',
@@ -65,13 +64,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_04',
     title: '损失函数 vs 评估指标',
     concept_a_name: '损失函数',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '模型训练时用的内部计分器，指导优化方向',
     concept_a_symptom: '直接优化可能导致过拟合',
     concept_a_analogy: '像考试时的即时评分系统',
     concept_a_fix: '结合正则化、使用合适的损失函数',
     concept_b_name: '评估指标',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '最终判断模型好坏的外部标准',
     concept_b_symptom: '可能和训练目标不一致',
     concept_b_analogy: '像高考成绩决定你上什么大学',
@@ -83,13 +82,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_05',
     title: '梯度下降 vs 随机梯度下降',
     concept_a_name: '梯度下降',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '每次用所有数据计算梯度，方向准但速度慢',
     concept_a_symptom: '大数据集上训练时间很长',
     concept_a_analogy: '像认真研究每道题后再做下一道',
     concept_a_fix: '使用小批量或随机版本',
     concept_b_name: '随机梯度下降',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '每次用一个样本估算梯度，速度快但有噪声',
     concept_b_symptom: '收敛过程有震荡，可能跳过最优解',
     concept_b_analogy: '像边走边问路，速度快但可能走弯路',
@@ -101,13 +100,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_06',
     title: '分类 vs 回归',
     concept_a_name: '分类',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '预测离散类别，如判断是猫还是狗',
     concept_a_symptom: '输出是概率分布，不能做算术运算',
     concept_a_analogy: '像选择题，从固定选项中选一个',
     concept_a_fix: '使用softmax、多分类时考虑类别不平衡',
     concept_b_name: '回归',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '预测连续数值，如预测房价是多少钱',
     concept_b_symptom: '输出可以是任意实数，可能超出合理范围',
     concept_b_analogy: '像填空题，答案是某个具体的数字',
@@ -119,13 +118,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_07',
     title: '参数模型 vs 非参数模型',
     concept_a_name: '参数模型',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '模型参数数量固定，与数据量无关',
     concept_a_symptom: '数据少时可能欠拟合，数据多时增长受限',
     concept_a_analogy: '像固定容量的容器，装不下更多知识',
     concept_a_fix: '增加模型层数、使用更复杂的架构',
     concept_b_name: '非参数模型',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '参数数量随数据量增长而增加',
     concept_b_symptom: '数据多时效果好，但可能过拟合和内存爆炸',
     concept_b_analogy: '像无限容量的书包，数据越多背得越多',
@@ -137,13 +136,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_08',
     title: '偏差 vs 方差',
     concept_a_name: '偏差',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '模型预测值与真实值的系统性偏差',
     concept_a_symptom: '训练集和测试集表现都不好',
     concept_a_analogy: '像射击时子弹永远偏离靶心',
     concept_a_fix: '增加模型复杂度、添加更多特征',
     concept_b_name: '方差',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '模型预测值在不同数据集间的波动程度',
     concept_b_symptom: '训练集好但测试集差，过拟合的标志',
     concept_b_analogy: '像射击时子弹散布很广但中心在靶心',
@@ -155,13 +154,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_09',
     title: '混淆矩阵',
     concept_a_name: '真阳性',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '预测为正，实际也是正，预测对了',
     concept_a_symptom: '越高越好，但可能伴随假阳性增加',
     concept_a_analogy: '像火警响了确实有火灾',
     concept_a_fix: '优化模型、提高阈值',
     concept_b_name: '假阳性',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '预测为正，实际是负，误报',
     concept_b_symptom: '太高会让人疲劳、浪费资源',
     concept_b_analogy: '像火警响了但没有火灾',
@@ -173,13 +172,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_10',
     title: '特征工程 vs 特征学习',
     concept_a_name: '特征工程',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '人工提取和设计特征，需要领域知识',
     concept_a_symptom: '耗时耗力，但可解释性强',
     concept_a_analogy: '像手工打造零件，精度高但慢',
     concept_a_fix: '结合领域专家知识、迭代优化',
     concept_b_name: '特征学习',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '模型自动从数据中学习特征表示',
     concept_b_symptom: '省力但像黑箱，解释性差',
     concept_b_analogy: '像机器批量生产零件，效率高但不一定精准',
@@ -191,13 +190,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_11',
     title: '训练集 vs 测试集',
     concept_a_name: '训练集',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '用来教模型学习的数据',
     concept_a_symptom: '模型在训练集上表现好不代表真的好',
     concept_a_analogy: '像教材，学生用来学习的',
     concept_a_fix: '数据要全面、干净、有代表性',
     concept_b_name: '测试集',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '用来最终考核模型的数据，要和训练集分开',
     concept_b_symptom: '测试集泄露会导致成绩虚高',
     concept_b_analogy: '像期末考试卷考前不能看',
@@ -209,13 +208,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_12',
     title: 'L1正则化 vs L2正则化',
     concept_a_name: 'L1正则化',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '惩罚参数绝对值之和，产生稀疏解',
     concept_a_symptom: '自动做特征选择，参数更容易为0',
     concept_a_analogy: '像把不重要的书直接扔掉',
     concept_a_fix: '适合高维稀疏数据',
     concept_b_name: 'L2正则化',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '惩罚参数平方和，让参数都小但不归零',
     concept_b_symptom: '保留所有特征，参数值更平滑',
     concept_b_analogy: '像把所有书压缩变薄但都保留',
@@ -227,13 +226,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_13',
     title: '交叉熵 vs 均方误差',
     concept_a_name: '交叉熵',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '衡量两个概率分布的差异，适合分类',
     concept_a_symptom: '梯度在概率接近时仍较大，收敛快',
     concept_a_analogy: '像比较两个骰子的概率分布',
     concept_a_fix: '适合分类任务，尤其是多分类',
     concept_b_name: '均方误差',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '计算预测值与真实值的平方差的均值',
     concept_b_symptom: '梯度在误差大时很大，容易梯度爆炸',
     concept_b_analogy: '像测量射击点到靶心的平均距离',
@@ -245,13 +244,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_14',
     title: 'Batch Normalization vs Layer Normalization',
     concept_a_name: 'Batch Normalization',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '对批次维度做归一化',
     concept_a_symptom: '依赖batch大小，小batch效果差',
     concept_a_analogy: '像按班级成绩排名，同班同学互相比较',
     concept_a_fix: '使用足够大的batch，或改用Layer Norm',
     concept_b_name: 'Layer Normalization',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '对单个样本的所有特征做归一化',
     concept_b_symptom: '不依赖batch，适合序列模型',
     concept_b_analogy: '像只看自己各科成绩的相对位置',
@@ -263,13 +262,13 @@ const FALLBACK_COMPARISONS: Comparison[] = [
     id: 'cmp_test_15',
     title: '卷积神经网络 vs 循环神经网络',
     concept_a_name: '卷积神经网络',
-    concept_a_discipline: 'ai',
+    concept_a_discipline: '计算机',
     concept_a_plain: '擅长处理图像等网格结构数据',
     concept_a_symptom: '并行计算效率高，但处理序列需要额外设计',
     concept_a_analogy: '像用放大镜扫描图片提取特征',
     concept_a_fix: '处理序列时叠加多个卷积层或用注意力机制',
     concept_b_name: '循环神经网络',
-    concept_b_discipline: 'ai',
+    concept_b_discipline: '计算机',
     concept_b_plain: '擅长处理序列数据，有记忆能力',
     concept_b_symptom: '难以处理长序列，容易梯度消失/爆炸',
     concept_b_analogy: '像阅读文章时记住前文内容',
@@ -305,7 +304,7 @@ export default function ConceptCompareTool() {
       try {
         const data = await getComparisons()
         if (mounted) {
-          const apiData = Array.isArray(data) ? data : (data as any)?.data || []
+          const apiData = Array.isArray(data) ? data : []
           // 如果 API 返回数据为空，使用前端硬编码的测试数据
           setComparisons(apiData.length > 0 ? apiData : FALLBACK_COMPARISONS)
         }
@@ -365,19 +364,9 @@ export default function ConceptCompareTool() {
     if (!query.trim()) return null
     try {
       const res = await searchTerms(query, 20)
-      // 兼容多种返回格式：SearchResponse { results:[{term,...}] } 或 {data:{terms:[]}} 或 plain APITerm[]
-      let list: APITerm[] = []
-      if (Array.isArray(res)) {
-        list = res
-      } else if (res && Array.isArray((res as any).results)) {
-        list = (res as any).results.map((r: any) => r.term || r).filter(Boolean)
-      } else if (res && Array.isArray((res as any).data?.terms)) {
-        list = (res as any).data.terms
-      } else if (res && Array.isArray((res as any).data)) {
-        list = (res as any).data
-      } else if (res && Array.isArray((res as any).terms)) {
-        list = (res as any).terms
-      }
+      const list: APITerm[] = Array.isArray(res?.results)
+        ? res.results.map((r) => r.term).filter(Boolean)
+        : []
       if (list.length === 0) return null
       // 精确匹配优先
       const exact = list.find((t: APITerm) => matchName(query, t.name))
@@ -440,22 +429,22 @@ export default function ConceptCompareTool() {
         name: cmp.concept_a_name,
         discipline: cmp.concept_a_discipline,
         plain: cmp.concept_a_plain,
-        symptom: (cmp as any).concept_a_symptom,
-        analogy: (cmp as any).concept_a_analogy,
-        fix: (cmp as any).concept_a_fix,
+        symptom: cmp.concept_a_symptom,
+        analogy: cmp.concept_a_analogy,
+        fix: cmp.concept_a_fix,
       },
       {
         prefix: 'b',
         name: cmp.concept_b_name,
         discipline: cmp.concept_b_discipline,
         plain: cmp.concept_b_plain,
-        symptom: (cmp as any).concept_b_symptom,
-        analogy: (cmp as any).concept_b_analogy,
-        fix: (cmp as any).concept_b_fix,
+        symptom: cmp.concept_b_symptom,
+        analogy: cmp.concept_b_analogy,
+        fix: cmp.concept_b_fix,
       },
     ]
 
-    const cardKey = (cmp as any).id || `${cmp.concept_a_name}-${cmp.concept_b_name}`
+    const cardKey = cmp.id || `${cmp.concept_a_name}-${cmp.concept_b_name}`
     return (
       <motion.div
         key={cardKey}
@@ -568,9 +557,9 @@ export default function ConceptCompareTool() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {items.map((c, i) => (
+          {items.map((c) => (
             <div
-              key={i}
+              key={c.name}
               className="bg-white dark:bg-warm-card rounded-xl p-5 border border-warm-border hover:shadow-card transition-shadow"
             >
               <div className="flex items-center gap-2 mb-4">
@@ -608,13 +597,13 @@ export default function ConceptCompareTool() {
                   </div>
                 )}
                 {c.aliases && Array.isArray(c.aliases) && c.aliases.length > 0 && (() => {
-                  const aliasList: any[] = c.aliases
+                  const aliasList: TermAlias[] = c.aliases
                   return (
                     <div>
                       <div className="text-[11px] text-warm-text mb-1">跨学科别名</div>
                       <div className="text-sm text-warm-text">
                         {aliasList.map((al, idx) => (
-                          <span key={idx}>
+                          <span key={`${al.discipline}-${al.name}`}>
                             {getDisciplineName(al.discipline)}·{al.name}
                             {idx < aliasList.length - 1 ? '；' : ''}
                           </span>

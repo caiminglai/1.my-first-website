@@ -13,7 +13,7 @@ export default function CrossDisciplineSection() {
       try {
         const data = await getComparisons();
         if (mounted) {
-          const list = Array.isArray(data) ? data : (data as any)?.data || [];
+          const list = Array.isArray(data) ? data : [];
           setComparisons(list);
         }
       } catch {

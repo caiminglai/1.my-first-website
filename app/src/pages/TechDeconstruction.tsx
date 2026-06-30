@@ -30,6 +30,7 @@ import {
   CAREER_PATHS,
   TECH_NAV_ITEMS,
 } from '@/data/tech_data'
+import { getJobCategories, getDetailedJobs } from '@/api/services'
 import {
   HIGH_PAY_JOBS,
   CATEGORIES,
@@ -39,6 +40,11 @@ import {
 } from '@/data/career_guide'
 import type { TechComponent } from '@/data/tech_data'
 import { TechDeconstructionSkeleton } from '@/components/LoadingSkeletons'
+import SectionAnchor from '@/components/SectionAnchor'
+import SectionTitle from '@/components/SectionTitle'
+import StarRating from '@/components/StarRating'
+import SideNav from '@/components/SideNav'
+import type { SideNavItem } from '@/components/SideNav'
 
 // API 响应类型（避免 any）
 interface APISkill {
@@ -112,30 +118,6 @@ function PageNavBar() {
         </button>
       </div>
     </nav>
-  )
-}
-
-function SectionAnchor({ id, children }: { id: string; children: React.ReactNode }) {
-  return <div id={id}>{children}</div>
-}
-
-function SectionTitle({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  subtitle: string
-}) {
-  return (
-    <motion.div variants={itemVariants} className="text-center mb-8">
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-accent/10 text-warm-accent text-sm font-medium mb-3">
-        <Icon className="w-4 h-4" />
-        {title}
-      </div>
-      <p className="text-warm-text text-base">{subtitle}</p>
-    </motion.div>
   )
 }
 
@@ -292,19 +274,6 @@ function ProfitPyramidSection() {
   )
 }
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className={`w-3.5 h-3.5 ${s <= rating ? 'text-warm-accent fill-warm-accent' : 'text-warm-border'}`}
-        />
-      ))}
-    </div>
-  )
-}
-
 function ComponentCard({ comp }: { comp: TechComponent }) {
   const [expanded, setExpanded] = useState(false)
   return (
@@ -361,7 +330,7 @@ function ComponentCard({ comp }: { comp: TechComponent }) {
                 <p className="text-xs text-warm-text font-medium mb-1.5">怎么造（关键步骤）</p>
                 <ol className="space-y-1">
                   {comp.manufacturing.map((step, i) => (
-                    <li key={i} className="text-xs text-warm-text flex items-start gap-2">
+                    <li key={step} className="text-xs text-warm-text flex items-start gap-2">
                       <span className="w-4 h-4 rounded-full bg-warm-bg text-warm-accent text-[9px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                         {i + 1}
                       </span>
@@ -373,8 +342,8 @@ function ComponentCard({ comp }: { comp: TechComponent }) {
               <div className="bg-red-50 rounded-lg p-3">
                 <p className="text-xs text-red-600 font-medium mb-1">核心难点</p>
                 <ul className="space-y-1">
-                  {comp.painPoints.map((p, i) => (
-                    <li key={i} className="text-xs text-red-700 flex items-start gap-1.5">
+                  {comp.painPoints.map((p) => (
+                    <li key={p} className="text-xs text-red-700 flex items-start gap-1.5">
                       <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                       {p}
                     </li>
@@ -472,7 +441,7 @@ function ConclusionsSection() {
           <div className="space-y-4">
             {CORE_CONCLUSIONS.map((c, i) => (
               <motion.div
-                key={i}
+                key={c.title}
                 initial={{ opacity: 0, y: 15 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -595,21 +564,17 @@ function CareerGuideSection() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 获取分类
-        const catRes = await fetch('/api/v1/jobs/categories')
-        const catData = await catRes.json()
-        if (catData.success) {
-          setCategories(catData.data)
-          if (catData.data.length > 0) {
-            setSelectedCategory(catData.data[0].name)
-          }
+        // 获取分类（通过 apiClient 统一处理）
+        const cats = await getJobCategories()
+        if (cats && cats.length > 0) {
+          setCategories(cats)
+          setSelectedCategory(cats[0].name)
         }
 
-        // 用新的带详情接口一次性获取（N+1优化）
-        const jobsRes = await fetch('/api/v1/jobs/detailed')
-        const jobsData = await jobsRes.json()
-        if (jobsData.success && jobsData.data.length > 0) {
-          const validJobs = jobsData.data.map(
+        // 用带详情接口一次性获取（N+1优化）
+        const rawJobs = (await getDetailedJobs()) as APIJobItem[]
+        if (rawJobs && rawJobs.length > 0) {
+          const validJobs = rawJobs.map(
             (d: APIJobItem) =>
               ({
                 id: d.job_key || d.id,
@@ -692,8 +657,8 @@ function CareerGuideSection() {
               所有高薪岗都要的通用底子（必学）
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {FOUNDATION_SKILLS.map((skill, i) => (
-                <div key={i} className="bg-warm-bg rounded-lg p-3">
+              {FOUNDATION_SKILLS.map((skill) => (
+                <div key={skill.name} className="bg-warm-bg rounded-lg p-3">
                   <p className="text-xs font-bold text-warm-dark">{skill.name}</p>
                   <p className="text-[10px] text-warm-text mt-1 line-clamp-2">{skill.desc}</p>
                 </div>
@@ -702,9 +667,9 @@ function CareerGuideSection() {
             <div className="mt-4">
               <h4 className="text-xs font-medium text-warm-text mb-2">学习资源</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {FOUNDATION_RESOURCES.slice(0, 4).map((res, i) => (
+                {FOUNDATION_RESOURCES.slice(0, 4).map((res) => (
                   <a
-                    key={i}
+                    key={res.title}
                     href={res.link}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -813,7 +778,7 @@ function CareerGuideSection() {
                         </h3>
                         <div className="space-y-3">
                           {selectedJob.stages.map((stage, i) => (
-                            <div key={i} className="bg-warm-bg rounded-lg p-3">
+                            <div key={stage.title} className="bg-warm-bg rounded-lg p-3">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="w-6 h-6 rounded-full bg-warm-accent text-white text-xs font-bold flex items-center justify-center">
                                   {i + 1}
@@ -851,9 +816,9 @@ function CareerGuideSection() {
                           推荐学习资源
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {selectedJob.resources.map((res, i) => (
+                          {selectedJob.resources.map((res) => (
                             <div
-                              key={i}
+                              key={res.title}
                               className="flex items-center gap-2 bg-warm-bg rounded-lg p-3"
                             >
                               <div className="w-8 h-8 rounded-lg bg-warm-accent/20 flex items-center justify-center">
@@ -876,7 +841,7 @@ function CareerGuideSection() {
                         <h3 className="text-sm font-bold text-green-800 mb-3">跟着做：实战项目</h3>
                         <ol className="space-y-1.5">
                           {selectedJob.project.map((step, i) => (
-                            <li key={i} className="flex items-start gap-2">
+                            <li key={step} className="flex items-start gap-2">
                               <span className="w-5 h-5 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
                                 {i + 1}
                               </span>
@@ -911,99 +876,11 @@ function CareerGuideSection() {
   )
 }
 
-function TechSideNav() {
-  const [isVisible, setIsVisible] = useState(false)
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const { scrollTo } = useSmoothScroll()
-
-  useEffect(() => {
-    const handleScroll = () => setIsVisible(window.scrollY > 400)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  if (!isVisible) return null
-
-  return (
-    <div className="fixed left-3 top-[180px] z-40 hidden lg:flex flex-col items-center gap-1">
-      <div className="bg-white/95 dark:bg-[#252423]/95 backdrop-blur-md rounded-2xl border border-warm-border shadow-lg p-2 flex flex-col items-center gap-1">
-        {TECH_NAV_ITEMS.map((item, index) => (
-          <div
-            key={item.id}
-            className="relative"
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <button
-              onClick={() => scrollTo(item.id)}
-              title={item.label}
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110"
-              style={{
-                color: hoveredIndex === index ? '#fff' : '#D4853B',
-                backgroundColor: hoveredIndex === index ? '#D4853B' : '#D4853B12',
-              }}
-            >
-              {item.label.slice(0, 2)}
-            </button>
-            {hoveredIndex === index && (
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 ml-2 bg-warm-dark text-white rounded-lg px-3 py-2 shadow-xl whitespace-nowrap z-50">
-                <span className="text-sm font-medium">{item.label}</span>
-                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-warm-dark rotate-45" />
-              </div>
-            )}
-          </div>
-        ))}
-        <div
-          className="relative"
-          onMouseEnter={() => setHoveredIndex(10)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          <button
-            onClick={() => scrollTo('career-guide')}
-            title="高薪岗指南"
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110"
-            style={{
-              color: hoveredIndex === 10 ? '#fff' : '#D4853B',
-              backgroundColor: hoveredIndex === 10 ? '#D4853B' : '#D4853B12',
-            }}
-          >
-            指南
-          </button>
-          {hoveredIndex === 10 && (
-            <div className="absolute left-12 top-1/2 -translate-y-1/2 ml-2 bg-warm-dark text-white rounded-lg px-3 py-2 shadow-xl whitespace-nowrap z-50">
-              <span className="text-sm font-medium">高薪岗指南</span>
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-warm-dark rotate-45" />
-            </div>
-          )}
-        </div>
-        <div className="w-6 h-px bg-warm-border my-0.5" />
-        <div
-          className="relative"
-          onMouseEnter={() => setHoveredIndex(99)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            title="回到顶部"
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110"
-            style={{
-              color: hoveredIndex === 99 ? '#fff' : '#D4853B',
-              backgroundColor: hoveredIndex === 99 ? '#D4853B' : '#D4853B12',
-            }}
-          >
-            TOP
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function TechDeconstruction() {
   return (
     <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#1C1B1A]">
       <PageNavBar />
-      <TechSideNav />
+      <SideNav items={TECH_NAV_ITEMS as SideNavItem[]} extraItems={[{ id: 'career-guide', label: '高薪岗指南', icon: '指南' }]} />
       <HeroSection />
       <ProfitPyramidSection />
       <ComponentsSection />

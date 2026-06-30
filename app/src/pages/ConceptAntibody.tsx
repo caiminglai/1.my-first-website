@@ -512,7 +512,7 @@ export default function ConceptAntibody() {
 
                 <div className="space-y-4">
                   {scoreQuestions.map((item, i) => (
-                    <div key={i} className="p-4 rounded-lg bg-warm-bg dark:bg-[#1C1B1A]">
+                    <div key={item.q} className="p-4 rounded-lg bg-warm-bg dark:bg-[#1C1B1A]">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium text-warm-dark dark:text-[#F0EEE7]">
                           {item.q}
@@ -736,8 +736,8 @@ function StepCard({
 function CheckList({ items }: { items: string[] }) {
   return (
     <div className="space-y-2 mb-3">
-      {items.map((item, i) => (
-        <div key={i} className="flex items-start gap-2">
+      {items.map((item) => (
+        <div key={item} className="flex items-start gap-2">
           <CheckCircle2 className="w-4 h-4 text-disc-law flex-shrink-0 mt-0.5" />
           <span className="text-sm text-warm-dark">{item}</span>
         </div>

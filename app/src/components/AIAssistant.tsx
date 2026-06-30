@@ -18,6 +18,7 @@ import { aiChatStream, getAIProviders } from '@/api'
 import type { AIProvider } from '@/api'
 
 interface Message {
+  id: string
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
@@ -56,11 +57,12 @@ export default function AIAssistant() {
   })
   const [providerOpen, setProviderOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  // 从 localStorage 恢复配置
+  // 从 sessionStorage 恢复配置（关闭标签页后自动清除，更安全）
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY)
+      const saved = sessionStorage.getItem(STORAGE_KEY)
       if (saved) {
         const parsed = JSON.parse(saved)
         setConfig(parsed)
@@ -79,11 +81,11 @@ export default function AIAssistant() {
     }
   }, [isOpen, providers.length])
 
-  // 保存配置到 localStorage
+  // 保存配置到 sessionStorage（关闭标签页后自动清除，更安全）
   const saveConfig = useCallback((newConfig: AIConfig) => {
     setConfig(newConfig)
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig))
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig))
     } catch {
       // ignore
     }
@@ -93,6 +95,13 @@ export default function AIAssistant() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
+
+  // 组件卸载时取消正在进行的流
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
   const hasConfig = config.apiKey.trim().length > 0
 
@@ -113,12 +122,13 @@ export default function AIAssistant() {
     setIsLoading(true)
 
     // 添加用户消息
-    const userMessage: Message = { role: 'user', content: question }
+    const userMessage: Message = { id: `u-${Date.now()}`, role: 'user', content: question }
     setMessages((prev) => [...prev, userMessage])
     setInput('')
 
     // 添加空的助理消息（流式填充）
     const assistantMessage: Message = {
+      id: `a-${Date.now()}`,
       role: 'assistant',
       content: '',
       isStreaming: true,
@@ -134,7 +144,12 @@ export default function AIAssistant() {
         model: config.model || undefined,
       }
 
-      const stream = aiChatStream(request)
+      // 创建 AbortController，用于取消流
+      abortControllerRef.current?.abort()
+      const controller = new AbortController()
+      abortControllerRef.current = controller
+
+      const stream = aiChatStream(request, controller.signal)
       let fullContent = ''
 
       for await (const chunk of stream) {
@@ -165,12 +180,16 @@ export default function AIAssistant() {
         return newMessages
       })
     } catch (err: unknown) {
+      // 用户主动取消（如组件卸载、发起新请求），不显示错误
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        return
+      }
       setMessages((prev) => {
         const newMessages = [...prev]
         const lastIdx = newMessages.length - 1
         if (lastIdx >= 0 && newMessages[lastIdx].role === 'assistant') {
           newMessages[lastIdx] = {
-            role: 'assistant',
+            ...newMessages[lastIdx],
             content:
               '出错了：' + ((err as Error)?.message || '网络请求失败，请检查 API Key 和网络连接。'),
             error: true,
@@ -180,6 +199,7 @@ export default function AIAssistant() {
         return newMessages
       })
     } finally {
+      abortControllerRef.current = null
       setIsLoading(false)
     }
   }, [input, isLoading, hasConfig, config])
@@ -415,9 +435,9 @@ export default function AIAssistant() {
                   </div>
                 )}
 
-                {messages.map((msg, idx) => (
+                {messages.map((msg) => (
                   <div
-                    key={idx}
+                    key={msg.id}
                     className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div

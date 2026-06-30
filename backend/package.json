@@ -5,9 +5,15 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "backup": "node scripts/数据库备份.js",
+    "import:语义": "node scripts/导入语义词典.js",
+    "sync:to-obsidian": "node scripts/数据库同步到Obsidian.js",
+    "sync:from-obsidian": "node scripts/Obsidian同步到数据库.js",
+    "test": "vitest run"
   },
   "dependencies": {
+    "better-sqlite3": "^9.6.0",
     "cheerio": "^1.2.0",
     "compression": "^1.8.1",
     "cors": "^2.8.5",
@@ -17,10 +23,10 @@
     "openai": "^4.47.1",
     "sql.js": "^1.14.1"
   },
+  "devDependencies": {
+    "vitest": "^3.2.1"
+  },
   "engines": {
     "node": ">=18.0.0"
-  },
-  "optionalDependencies": {
-    "better-sqlite3": "^9.6.0"
   }
 }

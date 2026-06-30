@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>科学不装 · 操作手册</title>
+<style>
+@page {
+    size: A4;
+    margin: 15mm 18mm 15mm 18mm;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: "Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #fff;
+}
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 15mm 18mm;
+    margin: 0 auto 20px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    page-break-after: always;
+}
+.page:last-child { page-break-after: auto; }
+
+.cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 260mm;
+}
+.cover h1 {
+    font-size: 36pt;
+    font-weight: 900;
+    color: #1a1a1a;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+}
+.cover .subtitle {
+    font-size: 14pt;
+    color: #666;
+    margin-bottom: 60px;
+    letter-spacing: 2px;
+}
+.cover .meta {
+    font-size: 10pt;
+    color: #999;
+    line-height: 2.2;
+}
+.cover .meta strong { color: #333; }
+.cover .divider {
+    width: 60px;
+    height: 3px;
+    background: #1a1a1a;
+    margin: 30px auto;
+}
+
+h2 {
+    font-size: 16pt;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 28px 0 14px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #1a1a1a;
+    page-break-after: avoid;
+}
+h3 {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #333;
+    margin: 20px 0 10px 0;
+    page-break-after: avoid;
+}
+h4 {
+    font-size: 11pt;
+    font-weight: 600;
+    color: #444;
+    margin: 14px 0 8px 0;
+}
+
+p { margin: 8px 0; text-align: justify; }
+
+pre {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 9pt;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 10px 0;
+    page-break-inside: avoid;
+}
+code {
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 9.5pt;
+    background: #f0f0f0;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+pre code { background: none; padding: 0; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background: #f0f0f0;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+tr:nth-child(even) { background: #fafafa; }
+
+ul, ol { margin: 8px 0 8px 24px; }
+li { margin: 4px 0; }
+
+.tip {
+    background: #f8f9fa;
+    border-left: 4px solid #1a1a1a;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 9.5pt;
+}
+.tip.warn { border-left-color: #e65100; background: #fff3e0; }
+.tip.info { border-left-color: #1565c0; background: #e3f2fd; }
+.tip.ok { border-left-color: #2e7d32; background: #e8f5e9; }
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    margin: 10px 0;
+}
+.step-num {
+    width: 24px;
+    height: 24px;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10pt;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 10px;
+    margin-top: 2px;
+}
+.step-content { flex: 1; }
+
+.path {
+    font-family: "Consolas", monospace;
+    font-size: 9pt;
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #ddd;
+}
+
+.break { page-break-before: always; }
+.no-break { page-break-inside: avoid; }
+
+.flow {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 14px;
+    margin: 12px 0;
+    font-family: "Consolas", monospace;
+    font-size: 9pt;
+    line-height: 2;
+}
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="page cover">
+    <h1>科学不装</h1>
+    <div class="subtitle">跨学科概念还原库 · 操作手册</div>
+    <div class="divider"></div>
+    <div class="meta">
+        <strong>项目定位</strong>：各学科专业术语 &rarr; 大白话解释<br>
+        <strong>技术方案</strong>：Obsidian + Git + SQLite + 网站<br>
+        <strong>版本</strong>：v1.0<br>
+        <strong>日期</strong>：2026-06-24
+    </div>
+</div>
+
+<!-- 目录 -->
+<div class="page">
+    <h2>目录</h2>
+    <table>
+        <tr><th>章节</th><th>内容</th><th>页码</th></tr>
+        <tr><td>一</td><td>项目概述与架构</td><td>2</td></tr>
+        <tr><td>二</td><td>Obsidian 本地配置</td><td>3</td></tr>
+        <tr><td>三</td><td>五大模块模板</td><td>5</td></tr>
+        <tr><td>四</td><td>Git 同步配置</td><td>8</td></tr>
+        <tr><td>五</td><td>服务器部署</td><td>10</td></tr>
+        <tr><td>六</td><td>数据库导出/导入</td><td>12</td></tr>
+        <tr><td>七</td><td>日常维护流程</td><td>14</td></tr>
+        <tr><td>八</td><td>故障排查</td><td>15</td></tr>
+        <tr><td>九</td><td>插件清单</td><td>16</td></tr>
+    </table>
+</div>
+
+<!-- 第一章 -->
+<div class="page">
+    <h2>一、项目概述与架构</h2>
+
+    <h3>1.1 项目定位</h3>
+    <p><strong>科学不装</strong>是一个跨学科概念还原库，核心目标是将各学科、行业中的专业术语翻译成老百姓能听懂的大白话。</p>
+
+    <h3>1.2 四大模块</h3>
+    <table>
+        <tr><th>模块</th><th>内容</th><th>数据库表</th></tr>
+        <tr><td>词条</td><td>专业术语 &rarr; 人话翻译</td><td>词条</td></tr>
+        <tr><td>概念抗体</td><td>纠正常见概念误解</td><td>概念抗体</td></tr>
+        <tr><td>职业解构</td><td>拆解职业学习路径</td><td>职业解构</td></tr>
+        <tr><td>岗位拆解</td><td>行业黑话翻译 + 薪资真相</td><td>岗位</td></tr>
+        <tr><td>概念对比</td><td>两个概念并排对比</td><td>概念对比</td></tr>
+    </table>
+
+    <h3>1.3 技术架构</h3>
+    <div class="flow">
+Obsidian(写词条) --Git Push--&gt; 服务器Git(裸仓库) --sync.sh--&gt; SQLite(网站数据) --&gt; 网站前端(展示)
+    </div>
+
+    <h3>1.4 服务器信息</h3>
+    <table>
+        <tr><th>配置项</th><th>值</th></tr>
+        <tr><td>公网IP</td><td>your_server_ip</td></tr>
+        <tr><td>系统</td><td>Alibaba Cloud Linux 3</td></tr>
+        <tr><td>规格</td><td>2vCPU / 2GiB / 40GB ESSD</td></tr>
+        <tr><td>SSH</td><td>root@your_server_ip:22</td></tr>
+        <tr><td>部署路径</td><td>/var/www/my-first-website/</td></tr>
+        <tr><td>PM2进程名</td><td>my-website</td></tr>
+    </table>
+</div>
+
+<!-- 第二章 -->
+<div class="page">
+    <h2>二、Obsidian 本地配置</h2>
+
+    <h3>2.1 安装 Obsidian</h3>
+    <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">访问 obsidian.md 下载安装包</div>
+    </div>
+    <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">安装完成后新建仓库，命名为 <strong>科学不装</strong></div>
+    </div>
+    <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">仓库路径建议：<span class="path">E:\website\科学不装</span></div>
+    </div>
+
+    <h3>2.2 文件夹结构</h3>
+    <pre>科学不装/
+├── .obsidian/          &lt;- Obsidian 配置（自动生成）
+├── 模板/               &lt;- 5个模板文件
+├── 词条/               &lt;- 模块1：术语词条
+│   ├── 法律政策/
+│   ├── 化学/
+│   ├── 计算机/
+│   ├── 经济学/
+│   ├── 控制论/
+│   ├── 跨学科/
+│   ├── 生物学/
+│   ├── 数学/
+│   ├── 物理学/
+│   └── 医学心理/
+├── 概念对比/           &lt;- 模块5：概念对比
+├── 概念抗体/           &lt;- 模块2：概念抗体
+├── 岗位拆解/           &lt;- 模块4：岗位拆解
+└── 职业解构/           &lt;- 模块3：职业解构</pre>
+
+    <h3>2.3 安装插件</h3>
+    <p>设置 &rarr; 第三方插件 &rarr; 关闭安全模式 &rarr; 浏览社区插件，安装以下插件：</p>
+    <table>
+        <tr><th>插件</th><th>作用</th><th>状态</th></tr>
+        <tr><td>Templater</td><td>动态模板</td><td>必装</td></tr>
+        <tr><td>Dataview</td><td>查询生成列表</td><td>必装</td></tr>
+        <tr><td>Git</td><td>自动Git备份</td><td>必装</td></tr>
+        <tr><td>Tag Wrangler</td><td>标签管理</td><td>推荐</td></tr>
+        <tr><td>Style Settings</td><td>主题样式调整</td><td>推荐</td></tr>
+        <tr><td>Kanban</td><td>看板</td><td>可选</td></tr>
+        <tr><td>Calendar</td><td>日历</td><td>可选</td></tr>
+        <tr><td>Omnisearch</td><td>增强搜索</td><td>可选</td></tr>
+        <tr><td>Excalidraw CN</td><td>手绘图</td><td>可选</td></tr>
+        <tr><td>CSV TSV Viewer</td><td>表格查看</td><td>可选</td></tr>
+    </table>
+
+    <div class="tip warn">
+        <strong>注意</strong>：File Color、i18n+、Juggl 插件已弃用，不建议安装。
+    </div>
+</div>
+
+<!-- 第三章 -->
+<div class="page">
+    <h2>三、五大模块模板</h2>
+
+    <h3>3.1 模板1：词条</h3>
+    <p>文件位置：<span class="path">词条/学科名/术语名.md</span></p>
+    <pre>---
+类型: 词条
+词条ID: 
+学科: 
+热度: 0
+创建时间: 2026-06-24
+别名: []
+---
+
+# 术语名称
+
+**专业说法：** 
+
+**人话翻译：** 
+
+**本质：** 
+
+**提示：** 
+
+**跨学科别名：**
+- [[ ]]
+
+**相关术语：**
+- [[ ]]</pre>
+
+    <h3>3.2 模板2：概念抗体</h3>
+    <p>文件位置：<span class="path">概念抗体/学科名/概念名.md</span></p>
+    <pre>---
+类型: 概念抗体
+抗体ID: 
+学科: 
+创建时间: 2026-06-24
+---
+
+# 概念名称
+
+**常见误解（人话版）：**
+
+**正确理解（人话版）：**
+
+**为什么容易搞混：**
+
+**一句话记住：**
+
+**真实案例：**</pre>
+
+    <h3>3.3 模板3：职业解构</h3>
+    <p>文件位置：<span class="path">职业解构/分类名/职业名.md</span></p>
+    <pre>---
+类型: 职业解构
+职业ID: 
+分类: 
+创建时间: 2026-06-24
+---
+
+# 职业名称
+
+**一句话定义：**
+
+**是干嘛的（人话版）：**
+
+**日常做什么：**
+- 
+- 
+
+**学习路径：**
+| 阶段 | 目标 | 时间 |
+|------|------|------|
+| 入门 | | |
+| 进阶 | | |
+| 精通 | | |
+
+**核心技能：**
+- [[ ]]
+
+**容易掉的坑：**</pre>
+</div>
+
+<div class="page">
+    <h3>3.4 模板4：岗位拆解</h3>
+    <p>文件位置：<span class="path">岗位拆解/分类名/岗位名.md</span></p>
+    <pre>---
+类型: 岗位拆解
+岗位ID: 
+分类ID: 
+创建时间: 2026-06-24
+---
+
+# 岗位名称
+
+**行业黑话翻译：**
+
+**实际工作内容（人话版）：**
+
+**薪资真相：**
+
+**入门门槛：**
+
+**学习阶段：**
+| 阶段 | 学什么 | 产出 |
+|------|--------|------|
+| 第一阶段 | | |
+| 第二阶段 | | |
+| 第三阶段 | | |
+
+**必备技能：**
+- [[ ]]
+
+**避坑指南：**</pre>
+
+    <h3>3.5 模板5：概念对比</h3>
+    <p>文件位置：<span class="path">概念对比/对比标题.md</span></p>
+    <pre>---
+类型: 概念对比
+对比ID: 
+关系类型: 关联性
+创建时间: 2026-06-24
+---
+
+# 概念A vs 概念B
+
+## 概念A：名称
+
+**所属学科：**
+
+**人话翻译：**
+
+**表现症状：**
+
+**生活类比：**
+
+**解决办法：**
+
+## 概念B：名称
+
+**所属学科：**
+
+**人话翻译：**
+
+**表现症状：**
+
+**生活类比：**
+
+**解决办法：**
+
+## 总结
+
+**一句话区分：**</pre>
+
+    <div class="tip info">
+        <strong>YAML 字段说明</strong>：<br>
+        <code>类型</code>：决定写入哪个数据库表，必填<br>
+        <code>词条ID/抗体ID/职业ID/岗位ID/对比ID</code>：唯一标识，可留空自动生成<br>
+        <code>学科/分类/分类ID</code>：分类信息<br>
+        <code>别名</code>：JSON数组格式，如 ["边际效应", "Marginal Utility"]<br>
+        <code>热度</code>：0或1，1表示热门词条<br>
+        <code>创建时间</code>：ISO格式日期
+    </div>
+</div>
+
+<!-- 第四章 -->
+<div class="page">
+    <h2>四、Git 同步配置</h2>
+
+    <h3>4.1 本地初始化 Git</h3>
+    <p>打开命令行（Win+R &rarr; cmd），执行：</p>
+    <pre>cd E:\website\科学不装
+git init
+git add .
+git commit -m "科学不装初始词条库"</pre>
+
+    <h3>4.2 服务器创建裸仓库</h3>
+    <p>SSH 登录服务器（your_server_ip），执行：</p>
+    <pre>mkdir -p /root/git-kxub.git
+cd /root/git-kxub.git
+git init --bare</pre>
+
+    <h3>4.3 本地关联远程</h3>
+    <pre>cd E:\website\科学不装
+git remote add origin root@your_server_ip:/root/git-kxub.git</pre>
+
+    <div class="tip warn">
+        如果提示 remote origin already exists，执行：<br>
+        <code>git remote set-url origin root@your_server_ip:/root/git-kxub.git</code>
+    </div>
+
+    <h3>4.4 首次推送</h3>
+    <pre>git push -u origin main
+
+# 如果 main 分支不存在，试试：
+git push -u origin master</pre>
+
+    <h3>4.5 Git 插件自动备份配置</h3>
+    <p>设置 &rarr; 第三方插件 &rarr; Git &rarr; 选项：</p>
+    <table>
+        <tr><th>设置项</th><th>值</th></tr>
+        <tr><td>Auto backup interval (minutes)</td><td>5</td></tr>
+        <tr><td>Auto commit message</td><td>自动备份: {{date}}</td></tr>
+        <tr><td>Auto push</td><td>开启</td></tr>
+        <tr><td>Auto save before commit</td><td>开启</td></tr>
+        <tr><td>Pull updates on startup</td><td>开启</td></tr>
+    </table>
+
+    <div class="tip ok">
+        配置完成后，Obsidian 每5分钟自动执行：git add &rarr; git commit &rarr; git push
+    </div>
+</div>
+
+<!-- 第五章 -->
+<div class="page">
+    <h2>五、服务器部署</h2>
+
+    <h3>5.1 上传解析脚本</h3>
+    <p>将 parse-md-to-sqlite-v2.js 上传到服务器：</p>
+    <pre>scp parse-md-to-sqlite-v2.js root@your_server_ip:/var/www/my-first-website/backend/</pre>
+
+    <h3>5.2 上传同步脚本</h3>
+    <p>将 sync-v2.sh 上传到 /root/，并赋予执行权限：</p>
+    <pre>chmod +x /root/sync-v2.sh</pre>
+
+    <h3>5.3 安装依赖</h3>
+    <pre>cd /var/www/my-first-website/backend
+npm install better-sqlite3</pre>
+
+    <h3>5.4 克隆仓库</h3>
+    <pre>cd /root
+git clone /root/git-kxub.git kxub-obsidian</pre>
+
+    <h3>5.5 手动同步</h3>
+    <pre>/root/sync-v2.sh</pre>
+    <p>脚本执行流程：</p>
+    <div class="flow">
+[1] 拉取 Obsidian 仓库 &rarr; [2] 备份数据库 &rarr; [3] 解析 Markdown &rarr; [4] 清理旧备份 &rarr; [5] 重启后端
+    </div>
+
+    <h3>5.6 自动同步（可选）</h3>
+    <p>设置定时任务，每5分钟自动同步：</p>
+    <pre>crontab -e
+
+# 添加一行：
+*/5 * * * * /root/sync-v2.sh >> /var/log/twym-sync.log 2>&amp;1</pre>
+
+    <h3>5.7 Nginx 配置</h3>
+    <pre>server {
+    listen 80;
+    server_name your_server_ip;
+
+    location /twym/ {
+        root /var/www/my-first-website/dist/;
+        try_files $uri /twym/index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /admin {
+        proxy_pass http://127.0.0.1:3000;
+    }
+}</pre>
+</div>
+
+<!-- 第六章 -->
+<div class="page">
+    <h2>六、数据库导出/导入</h2>
+
+    <h3>6.1 SQLite &rarr; Obsidian Markdown（导出）</h3>
+    <p>将数据库内容导出为 Markdown 文件到 Obsidian：</p>
+    <p>脚本位置：<span class="path">E:\website\1.my-first-website\data\db-to-obsidian.js</span></p>
+
+    <pre>// 配置
+const DB_PATH = 'E:\\website\\1.my-first-website\\data\\tongwuyiming.db';
+const OBSIDIAN_PATH = 'E:\\website\\科学不装';
+
+// 运行
+cd E:\website\1.my-first-website\data
+node db-to-obsidian.js</pre>
+
+    <h3>6.2 建立词条关联（双链）</h3>
+    <p>导出后词条没有关联，需要运行关联脚本：</p>
+    <pre>cd E:\website\1.my-first-website\data
+node auto-link.js</pre>
+    <p>关联规则：</p>
+    <ul>
+        <li>规则1：YAML 手动指定的 相关术语 转成 [[ ]]</li>
+        <li>规则2：别名匹配（跨学科关联）</li>
+        <li>规则3：同学科自动关联（每个词条关联最多3个同领域词条）</li>
+    </ul>
+
+    <h3>6.3 Obsidian Markdown &rarr; SQLite（导入）</h3>
+    <p>Obsidian 写完后同步到服务器数据库：</p>
+    <pre>// 服务器执行
+/root/sync-v2.sh</pre>
+    <p>支持五大模块自动识别：</p>
+    <table>
+        <tr><th>文件夹</th><th>类型识别</th><th>写入表</th></tr>
+        <tr><td>词条/xxx/</td><td>词条</td><td>词条</td></tr>
+        <tr><td>概念抗体/xxx/</td><td>概念抗体</td><td>概念抗体</td></tr>
+        <tr><td>职业解构/xxx/</td><td>职业解构</td><td>职业解构</td></tr>
+        <tr><td>岗位拆解/xxx/</td><td>岗位拆解</td><td>岗位</td></tr>
+        <tr><td>概念对比/</td><td>概念对比</td><td>概念对比</td></tr>
+    </table>
+</div>
+
+<!-- 第七章 -->
+<div class="page">
+    <h2>七、日常维护流程</h2>
+
+    <h3>7.1 写词条</h3>
+    <div class="flow">
+打开 Obsidian &rarr; 复制对应模板 &rarr; 填写内容 &rarr; Ctrl+S 保存
+    </div>
+
+    <h3>7.2 自动同步</h3>
+    <div class="flow">
+Git 插件每5分钟自动：git add &rarr; git commit &rarr; git push
+    </div>
+
+    <h3>7.3 服务器同步</h3>
+    <div class="flow">
+方式A：手动执行 /root/sync-v2.sh<br>
+方式B：定时任务每5分钟自动执行
+    </div>
+
+    <h3>7.4 完整流程图</h3>
+    <div class="flow">
+你在本地写/改词条 --Git插件自动备份--&gt; 服务器Git裸仓库 --sync-v2.sh--&gt; SQLite数据库 --&gt; 网站展示(your_server_ip)
+    </div>
+
+    <h3>7.5 备份策略</h3>
+    <table>
+        <tr><th>备份方式</th><th>命令/操作</th><th>频率</th></tr>
+        <tr><td>自动备份</td><td>Git 插件自动提交</td><td>每5分钟</td></tr>
+        <tr><td>数据库备份</td><td>sync-v2.sh 自动备份</td><td>每次同步</td></tr>
+        <tr><td>手动备份</td><td>cp tongwuyiming.db backups/</td><td>重大修改前</td></tr>
+        <tr><td>清理旧备份</td><td>保留最近7天</td><td>自动</td></tr>
+    </table>
+</div>
+
+<!-- 第八章 -->
+<div class="page">
+    <h2>八、故障排查</h2>
+
+    <h3>8.1 常见问题</h3>
+    <table>
+        <tr><th>症状</th><th>原因</th><th>解决</th></tr>
+        <tr>
+            <td>Git 插件报错：not a git repository</td>
+            <td>仓库未初始化 Git</td>
+            <td>git init &rarr; git commit</td>
+        </tr>
+        <tr>
+            <td>推送失败：remote rejected</td>
+            <td>远程仓库未创建</td>
+            <td>服务器执行 git init --bare</td>
+        </tr>
+        <tr>
+            <td>同步后网站无更新</td>
+            <td>后端未重启</td>
+            <td>pm2 restart my-website</td>
+        </tr>
+        <tr>
+            <td>词条显示为0</td>
+            <td>数据库为空/路径错误</td>
+            <td>检查 data/tongwuyiming.db 是否存在</td>
+        </tr>
+        <tr>
+            <td>解析脚本报错</td>
+            <td>better-sqlite3 未安装</td>
+            <td>npm install better-sqlite3</td>
+        </tr>
+        <tr>
+            <td>图谱无连线</td>
+            <td>无 [[双链]]</td>
+            <td>运行 auto-link.js 或手动添加</td>
+        </tr>
+        <tr>
+            <td>插件安装失败</td>
+            <td>网络问题</td>
+            <td>换下载源或手动安装</td>
+        </tr>
+    </table>
+
+    <h3>8.2 常用命令速查</h3>
+    <h4>Git 操作</h4>
+    <pre>git add .                    # 添加所有变更
+git commit -m "描述"          # 提交
+git push origin main          # 推送到远程
+git pull                      # 拉取远程更新
+git status                    # 查看状态
+git log --oneline -5          # 查看最近5条提交</pre>
+
+    <h4>PM2 操作</h4>
+    <pre>pm2 list                      # 查看进程
+pm2 logs my-website --lines 50 # 查看日志
+pm2 restart my-website        # 重启
+pm2 stop my-website           # 停止
+pm2 save                      # 保存配置</pre>
+
+    <h4>SQLite 操作</h4>
+    <pre>sqlite3 tongwuyiming.db
+&gt; SELECT COUNT(*) FROM 词条;
+&gt; SELECT 名称, 学科 FROM 词条 LIMIT 10;
+&gt; .quit</pre>
+</div>
+
+<!-- 第九章 -->
+<div class="page">
+    <h2>九、插件清单</h2>
+
+    <h3>9.1 已安装插件（13个）</h3>
+    <table>
+        <tr><th>插件</th><th>作者</th><th>下载量</th><th>状态</th></tr>
+        <tr><td>Templater</td><td>silentvoid13</td><td>466万</td><td>启用</td></tr>
+        <tr><td>Dataview</td><td>blacksmithgu</td><td>440万</td><td>启用</td></tr>
+        <tr><td>Tasks</td><td>obsidian-tasks-group</td><td>367万</td><td>启用</td></tr>
+        <tr><td>Calendar</td><td>Liam Cain</td><td>279万</td><td>启用</td></tr>
+        <tr><td>Style Settings</td><td>obsidian-community</td><td>242万</td><td>启用</td></tr>
+        <tr><td>Kanban</td><td>obsidian-community</td><td>237万</td><td>启用</td></tr>
+        <tr><td>Omnisearch</td><td>Simon Cambier</td><td>155万</td><td>启用</td></tr>
+        <tr><td>Importer</td><td>Obsidian</td><td>137万</td><td>启用</td></tr>
+        <tr><td>Tag Wrangler</td><td>pjeby</td><td>98万</td><td>启用</td></tr>
+        <tr><td>Git</td><td>Vincernt</td><td>274万</td><td>启用</td></tr>
+        <tr><td>Juggl</td><td>hemile</td><td>12万</td><td>启用（已弃用）</td></tr>
+        <tr><td>Excalidraw CN</td><td>korbinzhao</td><td>2万</td><td>启用</td></tr>
+        <tr><td>CSV TSV Viewer</td><td>Viggo Meesters</td><td>84</td><td>启用</td></tr>
+    </table>
+
+    <h3>9.2 已弃用插件</h3>
+    <table>
+        <tr><th>插件</th><th>原因</th></tr>
+        <tr><td>File Color</td><td>无内置颜色选项，版本太老</td></tr>
+        <tr><td>i18n+</td><td>加载失败，与当前版本不兼容</td></tr>
+    </table>
+
+    <div class="tip ok">
+        <strong>核心工作流已跑通</strong>：Obsidian 写词条 &rarr; Git 自动推送 &rarr; 服务器同步 &rarr; 网站展示<br>
+        颜色、汉化等视觉优化可后续迭代，不影响核心功能。
+    </div>
+</div>
+
+<!-- 封底 -->
+<div class="page cover">
+    <div style="margin-top: 80px;">
+        <div class="divider"></div>
+        <h1 style="font-size: 24pt;">科学不装</h1>
+        <div class="subtitle">让专业术语不再装神弄鬼</div>
+        <div style="margin-top: 60px; font-size: 10pt; color: #999; line-height: 2;">
+            项目地址：http://your_server_ip/twym/<br>
+            服务器：阿里云 ECS 2vCPU/2GiB<br>
+            技术栈：React + Express + SQLite + Obsidian<br>
+            文档版本：v1.0 &middot; 2026-06-24
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

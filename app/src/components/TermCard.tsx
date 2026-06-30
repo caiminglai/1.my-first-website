@@ -168,12 +168,12 @@ export default function TermCard({ entry, index, highlightId }: TermCardProps) {
             <span className="text-xs font-medium text-warm-text">跨学科别名</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {term.aliases.map((alias, idx) => {
+            {term.aliases.map((alias) => {
               const aliasDiscipline = DISCIPLINES.find((d) => d.id === alias.discipline)
               const discColor = aliasDiscipline?.color || '#8B7D6B'
               return (
                 <span
-                  key={idx}
+                  key={`${alias.discipline}-${alias.name}`}
                   className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs border bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200/70 dark:border-emerald-700/40"
                 >
                   <span

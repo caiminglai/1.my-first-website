@@ -5,13 +5,13 @@ import Footer from '@/sections/Footer'
 import TermCard from '@/components/TermCard'
 import ConceptGraph from '@/components/ConceptGraph'
 import { getDisciplines, getTerms } from '@/api/services'
-import type { DisciplineInfo } from '@/hooks/useDisciplines'
+import type { DisciplineData } from '@/api/services'
 import type { APITerm } from '@/api/types'
 
 export default function DisciplinePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [discipline, setDiscipline] = useState<DisciplineInfo | null>(null)
+  const [discipline, setDiscipline] = useState<DisciplineData | null>(null)
   const [terms, setTerms] = useState<APITerm[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -24,19 +24,19 @@ export default function DisciplinePage() {
       try {
         // 加载学科列表
         const disciplines = await getDisciplines()
-        const disc = disciplines.find((d: any) => d.id === id)
+        const disc = disciplines.find((d) => d.id === id)
         if (!cancelled) setDiscipline(disc ? { ...disc, description: disc.description || '' } : null)
 
         // 加载该学科下的词条（使用统一 API 服务）
-        const termsData = await getTerms(1, 500, id)
+        const termsData = await getTerms(1, 500, disc?.name || id)
         if (!cancelled) {
           const list: APITerm[] = Array.isArray(termsData)
             ? termsData
-            : (termsData as any)?.terms || []
+            : termsData?.terms || []
           setTerms(list)
         }
-      } catch (e: any) {
-        if (!cancelled) setError(e.message || '加载失败')
+      } catch (e: unknown) {
+        if (!cancelled) setError(e instanceof Error ? e.message : '加载失败')
       } finally {
         if (!cancelled) setLoading(false)
       }

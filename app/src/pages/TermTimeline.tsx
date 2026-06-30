@@ -132,8 +132,8 @@ export default function TermTimeline() {
             {/* 左侧竖线 */}
             <div className="absolute left-3 sm:left-7 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-[#E8A85A] via-[#D4853B] to-[#E8A85A]" />
 
-            {TIMELINE_NODES.map((node, idx) => (
-              <div key={idx} className="relative mb-8 last:mb-0">
+            {TIMELINE_NODES.map((node) => (
+              <div key={node.name} className="relative mb-8 last:mb-0">
                 {/* 圆形节点 */}
                 <div
                   className="absolute -left-[22px] sm:-left-[26px] top-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-[3px] border-warm-bg dark:border-warm-bg shadow-sm flex items-center justify-center"

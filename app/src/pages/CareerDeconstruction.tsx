@@ -35,6 +35,11 @@ import {
   CAREER_NAV_ITEMS,
 } from '@/data/career_data'
 import type { WatchdogIndustry } from '@/data/career_data'
+import SectionAnchor from '@/components/SectionAnchor'
+import SectionTitle from '@/components/SectionTitle'
+import StarRating from '@/components/StarRating'
+import SideNav from '@/components/SideNav'
+import type { SideNavItem } from '@/components/SideNav'
 
 /* ============================================================
    职业解构页面 -- Career Deconstruction Module
@@ -85,32 +90,6 @@ function PageNavBar() {
         </button>
       </div>
     </nav>
-  )
-}
-
-/* -------- 锚点包装器 -------- */
-function SectionAnchor({ id, children }: { id: string; children: React.ReactNode }) {
-  return <div id={id}>{children}</div>
-}
-
-/* -------- 区域标题 -------- */
-function SectionTitle({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: React.ComponentType<{ className?: string }>
-  title: string
-  subtitle: string
-}) {
-  return (
-    <motion.div variants={itemVariants} className="text-center mb-8">
-      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-warm-accent/10 text-warm-accent text-sm font-medium mb-3">
-        <Icon className="w-4 h-4" />
-        {title}
-      </div>
-      <p className="text-warm-text text-base">{subtitle}</p>
-    </motion.div>
   )
 }
 
@@ -217,7 +196,7 @@ function CognitiveMapSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {COGNITIVE_MAP_POINTS.map((p, i) => (
               <motion.div
-                key={i}
+                key={p.title}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -288,19 +267,6 @@ function WatchdogLawCard({ law, index }: { law: (typeof WATCHDOG_LAWS)[0]; index
   )
 }
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className={`w-3.5 h-3.5 ${s <= rating ? 'text-warm-accent fill-warm-accent' : 'text-warm-border'}`}
-        />
-      ))}
-    </div>
-  )
-}
-
 function IndustryCard({ industry }: { industry: WatchdogIndustry }) {
   const [expanded, setExpanded] = useState(false)
   return (
@@ -339,8 +305,8 @@ function IndustryCard({ industry }: { industry: WatchdogIndustry }) {
               <div className="bg-red-50 rounded-lg p-3 mb-3">
                 <p className="text-xs text-red-700 font-medium mb-1.5">痛点：</p>
                 <ul className="space-y-1">
-                  {industry.painPoints.map((p, i) => (
-                    <li key={i} className="text-xs text-red-600 flex items-start gap-1.5">
+                  {industry.painPoints.map((p) => (
+                    <li key={p} className="text-xs text-red-600 flex items-start gap-1.5">
                       <span className="w-1 h-1 rounded-full bg-red-400 mt-1.5 flex-shrink-0" />
                       {p}
                     </li>
@@ -375,7 +341,7 @@ function WatchdogEconomicsSection() {
           <h3 className="text-lg font-bold text-warm-dark mb-4 font-display">三大铁律</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
             {WATCHDOG_LAWS.map((law, i) => (
-              <WatchdogLawCard key={i} law={law} index={i} />
+              <WatchdogLawCard key={law.title} law={law} index={i} />
             ))}
           </div>
 
@@ -421,8 +387,8 @@ function HematopoiesisSection() {
                 造血型行业的三大特征
               </h3>
               <ul className="space-y-2">
-                {HEMATOPOIESIS_TRAITS.map((t, i) => (
-                  <li key={i} className="text-sm text-green-700 flex items-start gap-2">
+                {HEMATOPOIESIS_TRAITS.map((t) => (
+                  <li key={t} className="text-sm text-green-700 flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
                     {t}
                   </li>
@@ -443,7 +409,7 @@ function HematopoiesisSection() {
               </h3>
               <ul className="space-y-2">
                 {MIGRATION_RULES.map((r, i) => (
-                  <li key={i} className="text-sm text-amber-700 flex items-start gap-2">
+                  <li key={r} className="text-sm text-amber-700 flex items-start gap-2">
                     <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-800 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                       {i + 1}
                     </span>
@@ -754,7 +720,7 @@ function SynonymsSection() {
               <tbody>
                 {SYNONYM_TABLE.map((row, i) => (
                   <tr
-                    key={i}
+                    key={row.phenomenon}
                     className={`border-b border-warm-border ${i % 2 === 0 ? 'bg-white dark:bg-[#252423]' : 'bg-warm-bg/50'}`}
                   >
                     <td className="px-3 py-2.5 font-medium text-warm-dark">{row.phenomenon}</td>
@@ -840,7 +806,7 @@ function QuotesSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {QUICK_QUOTES.map((q, i) => (
               <motion.div
-                key={i}
+                key={q.text}
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -859,89 +825,13 @@ function QuotesSection() {
 }
 
 /* ============================================================
-   左侧浮动导航（本页专用）
-   ============================================================ */
-function CareerSideNav() {
-  const [isVisible, setIsVisible] = useState(false)
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const { scrollTo } = useSmoothScroll()
-
-  useEffect(() => {
-    const handleScroll = () => setIsVisible(window.scrollY > 400)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  if (!isVisible) return null
-
-  return (
-    <div className="fixed left-3 top-[180px] z-40 hidden lg:flex flex-col items-center gap-1">
-      <div className="bg-white/95 dark:bg-[#252423]/95 backdrop-blur-md rounded-2xl border border-warm-border shadow-lg p-2 flex flex-col items-center gap-1">
-        {CAREER_NAV_ITEMS.map((item, index) => (
-          <div
-            key={item.id}
-            className="relative"
-            onMouseEnter={() => setHoveredIndex(index)}
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <button
-              onClick={() => scrollTo(item.id)}
-              className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110"
-              style={{
-                color: hoveredIndex === index ? '#fff' : '#D4853B',
-                backgroundColor: hoveredIndex === index ? '#D4853B' : '#D4853B12',
-              }}
-              title={item.label}
-            >
-              {item.label.slice(0, 2)}
-            </button>
-            {hoveredIndex === index && (
-              <div className="absolute left-12 top-1/2 -translate-y-1/2 ml-2 bg-warm-dark text-white rounded-lg px-3 py-2 shadow-xl whitespace-nowrap z-50">
-                <span className="text-sm font-medium">{item.label}</span>
-                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-warm-dark rotate-45" />
-              </div>
-            )}
-          </div>
-        ))}
-
-        <div className="w-6 h-px bg-warm-border my-0.5" />
-
-        <div
-          className="relative"
-          onMouseEnter={() => setHoveredIndex(99)}
-          onMouseLeave={() => setHoveredIndex(null)}
-        >
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110"
-            style={{
-              color: hoveredIndex === 99 ? '#fff' : '#D4853B',
-              backgroundColor: hoveredIndex === 99 ? '#D4853B' : '#D4853B12',
-            }}
-            title="回到顶部"
-          >
-            TOP
-          </button>
-          {hoveredIndex === 99 && (
-            <div className="absolute left-12 top-1/2 -translate-y-1/2 ml-2 bg-warm-dark text-white rounded-lg px-3 py-2 shadow-xl whitespace-nowrap z-50">
-              <span className="text-sm font-medium">回到顶部</span>
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-warm-dark rotate-45" />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ============================================================
    主页面
    ============================================================ */
 export default function CareerDeconstruction() {
   return (
     <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#1C1B1A]">
       <PageNavBar />
-      <CareerSideNav />
+      <SideNav items={CAREER_NAV_ITEMS as SideNavItem[]} />
 
       <HeroSection />
       <CognitiveMapSection />

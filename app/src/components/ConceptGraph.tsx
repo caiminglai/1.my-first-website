@@ -5,6 +5,19 @@ import { getGraphNodes, getGraphLinks } from '@/api'
 import type { GraphNodeData, GraphLinkData } from '@/api/types'
 import { DISCIPLINES } from '@/types'
 
+/** API 返回的节点可能带 hot 字段 */
+interface SimNode extends GraphNodeData {
+  hot?: boolean
+  degree?: number
+}
+
+/** D3 forceLink 会把 source/target 从 string 变成对象引用 */
+type SimLink = {
+  source: SimNode | string
+  target: SimNode | string
+  label: string
+}
+
 // 简单的边界钳制（防止节点跑出画面）
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
@@ -123,14 +136,14 @@ function makeNodeVariation(
 
 // 计算每个节点的连接度（degree）
 function computeDegrees(
-  nodesArr: any[],
-  linksArr: any[],
+  nodesArr: SimNode[],
+  linksArr: SimLink[],
 ): Record<string, number> {
   const deg: Record<string, number> = {}
   nodesArr.forEach((n) => (deg[n.id] = 0))
-  linksArr.forEach((l: any) => {
-    const s = typeof l.source === 'object' ? l.source?.id : l.source
-    const t = typeof l.target === 'object' ? l.target?.id : l.target
+  linksArr.forEach((l) => {
+    const s = typeof l.source === 'object' ? (l.source as SimNode)?.id : l.source
+    const t = typeof l.target === 'object' ? (l.target as SimNode)?.id : l.target
     if (s && s in deg) deg[s]++
     if (t && t in deg) deg[t]++
   })
@@ -145,8 +158,8 @@ export default function ConceptGraph({
 }: ConceptGraphProps) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const gRootRef = useRef<any>(null)
-  const zoomBehaviorRef = useRef<any>(null)
+  const gRootRef = useRef<d3.Selection<SVGGElement, unknown, SVGSVGElement, unknown> | null>(null)
+  const zoomBehaviorRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null)
   const simulationRef = useRef<d3.Simulation<GraphNodeData, GraphLinkData> | null>(null)
   const [selectedNode, setSelectedNode] = useState<GraphNodeData | null>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 })
@@ -165,21 +178,21 @@ export default function ConceptGraph({
     Promise.all([getGraphNodes(), getGraphLinks()])
       .then(([nodesData, linksData]) => {
         // 基础结构：先分配学科基础色 + 半径（不做最终染色）
-        const baseNodes: GraphNodeData[] = (nodesData || []).map((n: any) => ({
-          ...n,
+        const baseNodes: SimNode[] = (nodesData || []).map((n: GraphNodeData) => ({
+          ...(n as SimNode),
           color: getDisciplineColor(n.discipline) || n.color,
-          radius: n.radius || (n.hot ? 12 : 8),
+          radius: n.radius || ((n as SimNode).hot ? 12 : 8),
         }))
 
         // 1) 若指定学科，先过滤节点和关系
         let filteredNodes = baseNodes
-        let filteredLinks = linksData || []
+        let filteredLinks: SimLink[] = linksData || []
         if (discipline) {
-          filteredNodes = baseNodes.filter((n: any) => n.discipline === discipline)
-          const nodeIds = new Set(filteredNodes.map((n: any) => n.id))
-          filteredLinks = (linksData || []).filter((l: any) => {
-            const s = typeof l.source === 'object' ? l.source?.id : l.source
-            const t = typeof l.target === 'object' ? l.target?.id : l.target
+          filteredNodes = baseNodes.filter((n) => n.discipline === discipline)
+          const nodeIds = new Set(filteredNodes.map((n) => n.id))
+          filteredLinks = (linksData || []).filter((l: GraphLinkData) => {
+            const s = typeof l.source === 'object' ? (l.source as unknown as SimNode)?.id : l.source
+            const t = typeof l.target === 'object' ? (l.target as unknown as SimNode)?.id : l.target
             return nodeIds.has(s) && nodeIds.has(t)
           })
         }
@@ -193,7 +206,7 @@ export default function ConceptGraph({
         //    - 首页：仍以学科色为主色，但做轻微的 degree 微抖，
         //            避免多个学科节点全部"平色"的同时保持跨学科分组视觉
         const isSingleDisc = Boolean(discipline)
-        const richNodes = filteredNodes.map((n: any) => {
+        const richNodes = filteredNodes.map((n) => {
           const base = getDisciplineColor(n.discipline) || n.color
           const degree = degrees[n.id] || 0
           if (isSingleDisc) {
@@ -224,7 +237,7 @@ export default function ConceptGraph({
         if (discipline) {
           setActiveDisciplines(new Set([discipline]))
         } else {
-          const allDiscs = Array.from(new Set(richNodes.map((n: any) => n.discipline)))
+          const allDiscs = Array.from(new Set(richNodes.map((n) => n.discipline)))
           setActiveDisciplines(new Set(allDiscs))
         }
 
@@ -377,7 +390,7 @@ export default function ConceptGraph({
 
       const ensureAttr = (attr: string, styleProp: string) => {
         if (!el.getAttribute(attr)) {
-          const v = (computed as any)[styleProp]
+          const v = (computed as CSSStyleDeclaration & Record<string, string>)[styleProp]
           if (v && v !== 'none' && v !== '' && v !== 'rgb(0, 0, 0)') {
             el.setAttribute(attr, v)
           }
@@ -475,7 +488,7 @@ export default function ConceptGraph({
 
   const toggleAllDisciplines = useCallback(() => {
     setActiveDisciplines((prev) => {
-      const allDiscs = Array.from(new Set(nodes.map((n: any) => n.discipline)))
+      const allDiscs = Array.from(new Set(nodes.map((n) => n.discipline)))
       const isAllSelected = allDiscs.every((d) => prev.has(d))
       if (isAllSelected) {
         return new Set<string>()
@@ -489,14 +502,14 @@ export default function ConceptGraph({
     const q = searchQuery.trim().toLowerCase()
     return new Set(
       nodes
-        .filter((n: any) => activeDisciplines.has(n.discipline))
+        .filter((n) => activeDisciplines.has(n.discipline))
         .filter(
-          (n: any) =>
+          (n) =>
             !q ||
             n.name.toLowerCase().includes(q) ||
             (n.translation || '').toLowerCase().includes(q),
         )
-        .map((n: any) => n.id),
+        .map((n) => n.id),
     )
   }, [nodes, activeDisciplines, searchQuery])
 
@@ -541,12 +554,12 @@ export default function ConceptGraph({
     zoomBehaviorRef.current = zoom
 
     // 禁用默认双击放大（避免误触），但保留手动点击节点
-    ;(svg as any).on('dblclick.zoom', null)
+    ;(svg as d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>).on('dblclick.zoom', null)
 
     // 复制节点数据（让 D3 可以写入 x/y/fx/fy）
-    const nodesCopy: GraphNodeData[] = nodes.map((n: any) => ({ ...n }))
+    const nodesCopy: SimNode[] = nodes.map((n) => ({ ...(n as SimNode) }))
     // 构建关系数据
-    const linksCopy: GraphLinkData[] = links.map((l: any) => ({ ...l }))
+    const linksCopy: SimLink[] = links.map((l) => ({ ...l } as SimLink))
 
     // 根据布局模式选参数：
     // - spread（默认平铺）：自然聚散，排斥力强、连线松、让节点自由分布
@@ -559,12 +572,12 @@ export default function ConceptGraph({
     const collisionPad = isCluster ? 3 : 6
 
     const simulation = d3
-      .forceSimulation<GraphNodeData>(nodesCopy)
+      .forceSimulation<SimNode>(nodesCopy)
       .force(
         'link',
         d3
-          .forceLink<GraphNodeData, GraphLinkData>(linksCopy)
-          .id((d: any) => d.id)
+          .forceLink<SimNode, SimLink>(linksCopy)
+          .id((d) => d.id)
           .distance(linkDistance)
           .strength(linkStrength),
       )
@@ -572,12 +585,12 @@ export default function ConceptGraph({
       .force('center', d3.forceCenter(width / 2, h / 2))
       .force(
         'collision',
-        d3.forceCollide<GraphNodeData>().radius((d: any) => (d.radius || 8) + collisionPad),
+        d3.forceCollide<SimNode>().radius((d) => (d.radius || 8) + collisionPad),
       )
       .force('x', d3.forceX(width / 2).strength(xyStrength))
       .force('y', d3.forceY(h / 2).strength(xyStrength))
 
-    simulationRef.current = simulation as any
+    simulationRef.current = simulation as unknown as d3.Simulation<GraphNodeData, GraphLinkData>
 
     // 箭头
     svg
@@ -614,7 +627,7 @@ export default function ConceptGraph({
       .style('cursor', 'pointer')
       .call(
         d3
-          .drag<SVGGElement, GraphNodeData>()
+          .drag<SVGGElement, SimNode>()
           .on('start', (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart()
             d.fx = d.x
@@ -634,19 +647,19 @@ export default function ConceptGraph({
     // 节点圆圈
     nodeElements
       .append('circle')
-      .attr('r', (d: any) => d.radius || 8)
-      .attr('fill', (d: any) => d.color)
+      .attr('r', (d) => d.radius || 8)
+      .attr('fill', (d) => d.color)
       .attr('stroke', '#fff')
       .attr('stroke-width', 2)
       .style('filter', 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))')
       .on('click', (_event, d) => handleNodeClick(d))
-      .on('mouseover', function (_event: MouseEvent, d: any) {
+      .on('mouseover', function (_event: MouseEvent, d) {
         d3.select(this)
           .transition()
           .duration(200)
-          .attr('r', (d as any).radius * 1.3)
+          .attr('r', d.radius * 1.3)
       })
-      .on('mouseout', function (_event: MouseEvent, d: any) {
+      .on('mouseout', function (_event: MouseEvent, d) {
         d3.select(this)
           .transition()
           .duration(200)
@@ -655,11 +668,11 @@ export default function ConceptGraph({
 
     // 标签：热门节点显示名称
     nodeElements
-      .filter((d: any) => (d.radius || 0) > 10)
+      .filter((d) => (d.radius || 0) > 10)
       .append('text')
-      .text((d: any) => (d.name.length > 8 ? d.name.slice(0, 8) + '…' : d.name))
+      .text((d) => (d.name.length > 8 ? d.name.slice(0, 8) + '…' : d.name))
       .attr('text-anchor', 'middle')
-      .attr('dy', (d: any) => (d.radius || 8) + 14)
+      .attr('dy', (d) => (d.radius || 8) + 14)
       .attr('font-size', '11px')
       .attr('fill', '#1A1A2E')
       .attr('font-weight', '500')
@@ -667,14 +680,14 @@ export default function ConceptGraph({
 
     simulation.on('tick', () => {
       linkElements
-        .attr('x1', (d: any) => clamp(d.source?.x ?? d.x1 ?? 0, PAD, width - PAD))
-        .attr('y1', (d: any) => clamp(d.source?.y ?? d.y1 ?? 0, PAD, h - PAD))
-        .attr('x2', (d: any) => clamp(d.target?.x ?? d.x2 ?? 0, PAD, width - PAD))
-        .attr('y2', (d: any) => clamp(d.target?.y ?? d.y2 ?? 0, PAD, h - PAD))
+        .attr('x1', (d) => clamp((d.source as SimNode)?.x ?? (d as unknown as { x1?: number }).x1 ?? 0, PAD, width - PAD))
+        .attr('y1', (d) => clamp((d.source as SimNode)?.y ?? (d as unknown as { y1?: number }).y1 ?? 0, PAD, h - PAD))
+        .attr('x2', (d) => clamp((d.target as SimNode)?.x ?? (d as unknown as { x2?: number }).x2 ?? 0, PAD, width - PAD))
+        .attr('y2', (d) => clamp((d.target as SimNode)?.y ?? (d as unknown as { y2?: number }).y2 ?? 0, PAD, h - PAD))
 
       nodeElements.attr(
         'transform',
-        (d: any) => `translate(${clamp(d.x ?? 0, PAD, width - PAD)},${clamp(d.y ?? 0, PAD, h - PAD)})`,
+        (d) => `translate(${clamp(d.x ?? 0, PAD, width - PAD)},${clamp(d.y ?? 0, PAD, h - PAD)})`,
       )
     })
 
@@ -691,9 +704,9 @@ export default function ConceptGraph({
 
     svg
       .selectAll('.nodes > g')
-      .each(function (_: any, i: number, nodes_arr: any) {
+      .each(function (_: SimNode, i: number, nodes_arr: ArrayLike<SVGGElement>) {
         const g = d3.select(nodes_arr[i])
-        const datum = g.datum() as GraphNodeData
+        const datum = g.datum() as SimNode
         const isVisible = activeDisciplines.has(datum.discipline)
         const matchSearch =
           !q ||
@@ -712,13 +725,13 @@ export default function ConceptGraph({
         }
       })
 
-    svg.selectAll('.links > line').each(function (_: any, i: number, lines_arr: any) {
+    svg.selectAll('.links > line').each(function (_: SimLink, i: number, lines_arr: ArrayLike<SVGLineElement>) {
       const l = d3.select(lines_arr[i])
-      const datum = l.datum() as any
+      const datum = l.datum() as SimLink
       const srcId =
-        typeof datum.source === 'object' ? (datum.source as GraphNodeData).id : datum.source
+        typeof datum.source === 'object' ? (datum.source as SimNode).id : datum.source
       const tgtId =
-        typeof datum.target === 'object' ? (datum.target as GraphNodeData).id : datum.target
+        typeof datum.target === 'object' ? (datum.target as SimNode).id : datum.target
       const bothVisible = visibleNodeIds.has(srcId) && visibleNodeIds.has(tgtId)
       l.style('opacity', bothVisible ? 0.55 : 0)
     })
@@ -733,7 +746,7 @@ export default function ConceptGraph({
       return []
     }
     const seen = new Map<string, { color: string; label: string }>()
-    nodes.forEach((n: any) => {
+    nodes.forEach((n) => {
       if (!seen.has(n.discipline)) {
         const disc = DISCIPLINES.find((d) => d.id === n.discipline)
         seen.set(n.discipline, {

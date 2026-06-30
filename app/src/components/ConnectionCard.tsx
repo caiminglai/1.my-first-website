@@ -31,10 +31,10 @@ export default function ConnectionCard({ entry, index }: ConnectionCardProps) {
 
       {/* 多学科叫法 */}
       <div className="space-y-2 mb-4">
-        {entry.names.map((name, i) => {
+        {entry.names.map((name) => {
           const disc = DISCIPLINES.find((d) => d.id === name.discipline)
           return (
-            <div key={i} className="flex items-center gap-2">
+            <div key={`${name.discipline}-${name.name}`} className="flex items-center gap-2">
               <span
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: disc?.color }}

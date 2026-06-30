@@ -41,7 +41,10 @@ export async function aiChat(request: AIChatRequest): Promise<AIChatResponse> {
  *     console.log(chunk.content); // 逐字输出
  *   }
  */
-export async function* aiChatStream(request: AIChatRequest) {
+export async function* aiChatStream(
+  request: AIChatRequest,
+  signal?: AbortSignal,
+) {
   // 开发环境使用相对路径通过代理，生产环境自动检测部署路径前缀
   const baseUrl = API_BASE_URL
 
@@ -52,6 +55,7 @@ export async function* aiChatStream(request: AIChatRequest) {
       Accept: 'text/event-stream',
     },
     body: JSON.stringify(request),
+    signal,
   })
 
   if (!response.ok) {
@@ -300,6 +304,25 @@ export async function aiGenerateComparison(
   request: AIGenerateComparisonRequest,
 ): Promise<Comparison> {
   return apiClient.post<Comparison>(API_ENDPOINTS.aiGenerateComparison, request)
+}
+
+// ============= 高薪技术岗 =============
+
+/**
+ * 获取岗位分类列表
+ */
+export async function getJobCategories(): Promise<Array<{ id: number; name: string; icon: string }>> {
+  return apiClient.get<Array<{ id: number; name: string; icon: string }>>(API_ENDPOINTS.jobCategories)
+}
+
+/**
+ * 获取所有岗位详情（带阶段/技能/资源）
+ */
+export async function getDetailedJobs(categoryId?: number): Promise<unknown[]> {
+  const params = new URLSearchParams()
+  if (categoryId) params.set('categoryId', String(categoryId))
+  const query = params.toString()
+  return apiClient.get<unknown[]>(query ? `${API_ENDPOINTS.jobs}/detailed?${query}` : `${API_ENDPOINTS.jobs}/detailed`)
 }
 
 // ============= 反馈 =============

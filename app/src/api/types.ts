@@ -271,3 +271,55 @@ export interface APIResponse<T> {
   data?: T
   error?: APIError
 }
+
+// ============= 共享 / 前端通用 =============
+
+/** 学科信息（含 description，用于前端渲染） */
+export interface DisciplineInfo {
+  id: string
+  name: string
+  color: string
+  description: string
+}
+
+/** 搜索建议（搜索框自动补全） */
+export interface SearchSuggestion {
+  id: string
+  name: string
+  translation: string
+  discipline: string
+}
+
+/** AI 配置（AI 助手 / 用户提交页共用） */
+export interface AIConfig {
+  provider: string
+  apiKey: string
+  baseUrl: string
+  model: string
+}
+
+/** 前端词条条目（与 APITerm 基本一致，hot 为 boolean） */
+export interface TermEntry {
+  id: string
+  discipline: string
+  name: string
+  translation: string
+  essence: string
+  tip: string
+  aliases?: TermAlias[]
+  hot?: boolean
+}
+
+/** 认知梯度路径 */
+export interface LearningGradient {
+  use: string
+  path: string[]
+}
+
+/** 跨学科词条 */
+export interface CrossDisciplineEntry {
+  id: string
+  concept: string
+  names: { discipline: string; name: string }[]
+  summary: string
+}

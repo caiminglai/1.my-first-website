@@ -39,7 +39,11 @@ async function request<T>(
   // 自动重试
   for (let attempt = 0; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    let timedOut = false
+    const timeoutId = setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, timeout)
 
     try {
       const response = await fetch(url, {
@@ -83,9 +87,13 @@ async function request<T>(
     } catch (error) {
       lastError = error as Error
 
-      // 被用户取消，不重试
+      // 被取消（可能是超时或外部取消）
       if (error instanceof DOMException && error.name === 'AbortError') {
-        throw new APIErrorException('请求超时', 'TIMEOUT', 408)
+        if (timedOut) {
+          throw new APIErrorException('请求超时', 'TIMEOUT', 408)
+        }
+        // 外部取消（非超时），不重试
+        throw new APIErrorException('请求已取消', 'CANCELLED', 499)
       }
 
       // 不是网络错误，不重试
