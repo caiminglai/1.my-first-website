@@ -13,9 +13,9 @@ Obsidian 编辑 Markdown 文件
          ↓
     Git 推送到服务器
          ↓
-  sync-v2.sh 自动触发
+  Obsidian同步.js 自动触发
          ↓
-parse-md-to-sqlite-v2.js 解析入库
+  Obsidian同步到数据库.js 解析入库
          ↓
    网站 API 实时展示
 ```
@@ -168,7 +168,7 @@ git push origin main
 
 ### 4.3 服务器自动同步
 
-服务器上已配置 `sync-v2.sh`，Git push 后会自动：
+服务器上已配置 `Obsidian同步.js`，Git push 后会自动：
 1. 拉取最新 Obsidian 文件
 2. 备份当前数据库
 3. 解析 Markdown 入库
@@ -182,9 +182,12 @@ git push origin main
 |------|------|
 | `模板/词条.md` | 词条模板 |
 | `模板/概念对比.md` | 概念对比模板 |
-| `parse-md-to-sqlite-v2.js` | Markdown → 数据库解析脚本（服务器用） |
-| `sync-v2.sh` | 服务器自动同步脚本 |
-| `fix-links.js` | 从数据库读取图谱关系，给 Obsidian 文件追加双链（本地用） |
+| `backend/scripts/Obsidian同步到数据库.js` | Markdown → 数据库解析脚本 |
+| `backend/scripts/数据库同步到Obsidian.js` | 数据库 → Obsidian 反向同步（补双链） |
+| `backend/scripts/数据库备份.js` | 数据库备份脚本 |
+| `backend/scripts/Obsidian同步.js` | 服务器端 Obsidian 同步入口 |
+| `scripts/启动服务.bat` | 一键启动前后端服务 |
+| `scripts/端口清理.bat` | 清理被占用的端口 |
 
 ---
 
@@ -221,4 +224,4 @@ git push origin main
 
 ---
 
-*版本：v3.0 · 对齐数据库 v3 · 2026-06-29*
+*版本：v3.1 · 更新脚本文件名为中文 · 2026-06-30*
