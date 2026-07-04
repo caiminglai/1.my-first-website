@@ -66,6 +66,22 @@ function validateId(id, name = "id") {
 }
 
 /**
+ * 验证词条ID参数（字符串格式，如 m001, bio001, c001）
+ * @param {any} id ID值
+ * @param {string} name 参数名
+ * @returns {string}
+ */
+function validateTermId(id, name = "id") {
+  if (id === undefined || id === null) {
+    throw new Error(`MISSING_PARAM:${name}`);
+  }
+  if (typeof id !== 'string' || id.trim() === '') {
+    throw new Error(`INVALID_PARAM:${name} (必须是有效的词条ID)`);
+  }
+  return id.trim();
+}
+
+/**
  * 验证数组参数
  * @param {any} arr 数组
  * @param {string} name 参数名
@@ -170,6 +186,7 @@ module.exports = {
   parsePagination,
   validateString,
   validateId,
+  validateTermId,
   validateArray,
   validateEnum,
   validateObject,

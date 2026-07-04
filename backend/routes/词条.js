@@ -24,10 +24,10 @@ router.get("/", (req, res) => {
   }
 });
 
-router.get("/search", (req, res) => {
+router.get("/search", async (req, res) => {
   try {
     const { q, limit } = req.query;
-    const result = termsService.searchTerms(q, limit);
+    const result = await termsService.searchTerms(q, limit);
     res.json({ success: true, data: result });
   } catch (error) {
     if (error.message === "MISSING_QUERY") {

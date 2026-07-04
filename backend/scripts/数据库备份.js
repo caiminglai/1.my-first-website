@@ -15,7 +15,7 @@ const fs = require('fs');
 const path = require('path');
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
-const DB_PATH = path.join(DATA_DIR, 'tongwuyiming.db');
+const DB_PATH = path.join(DATA_DIR, '同物异名.db');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
 const MAX_BACKUP_DAYS = 30; // 保留30天
 

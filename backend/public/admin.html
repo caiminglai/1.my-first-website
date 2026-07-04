@@ -119,6 +119,22 @@ tr:hover td{background:#F7F5F0}
 .preview-table tr:hover td{background:#F7F5F0}
 .preview-table td.hot-col{color:#D4853B;font-weight:500}
 .preview-scroll{max-height:360px;overflow:auto;border:1px solid #E5E2DA;border-radius:10px}
+/* 术语候选面板（选学科后弹出） */
+.suggestion-panel{margin-bottom:16px;padding:12px 14px;background:#f8fbff;border:1px solid #d6eaf8;border-radius:10px}
+.suggestion-panel h4{font-size:12px;color:#1a5276;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.suggestion-search{display:flex;gap:6px;margin-bottom:8px}
+.suggestion-search input{flex:1;padding:6px 10px;border:1px solid #d6eaf8;border-radius:6px;font-size:12px;outline:none}
+.suggestion-search input:focus{border-color:#2980b9}
+.suggestion-search button{padding:5px 12px;background:#2980b9;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer;white-space:nowrap}
+.suggestion-search button:hover{background:#1a6da0}
+.suggestion-list{max-height:160px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:4px}
+.suggestion-tag{display:inline-block;padding:4px 10px;background:#fff;border:1px solid #d4e6f7;border-radius:14px;font-size:12px;color:#2471a3;cursor:pointer;transition:all 0.15s}
+.suggestion-tag:hover{background:#2980b9;color:#fff;border-color:#2980b9}
+.suggestion-tag .weight{font-size:10px;color:#85c1e9;margin-left:3px}
+.suggestion-tag:hover .weight{color:#d6eaf8}
+.suggestion-empty{font-size:12px;color:#7fb3d8;padding:8px 0;text-align:center;width:100%}
+.suggestion-loading{font-size:12px;color:#7fb3d8;padding:8px 0;text-align:center;width:100%}
+
 .auto-save-status{font-size:12px;color:#9B9BAB;text-align:right;padding:6px 24px;min-height:22px}
 @keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
 
@@ -168,6 +184,7 @@ tr:hover td{background:#F7F5F0}
       <button class="tab" onclick="switchTab('submissions')" data-tab="submissions">提交审核</button>
       <button class="tab" onclick="switchTab('comparisons')" data-tab="comparisons">对比管理</button>
       <button class="tab" onclick="switchTab('backup')" data-tab="backup">数据备份</button>
+      <button class="tab" onclick="switchTab('lexicon')" data-tab="lexicon">词库管理</button>
     </div>
 
     <!-- 统计面板 -->
@@ -530,7 +547,16 @@ tr:hover td{background:#F7F5F0}
       </div>
       <div class="form-group">
         <label>术语名称</label>
-        <input type="text" id="editName" placeholder="专业术语">
+        <input type="text" id="editName" placeholder="专业术语，也可从下方候选词中选择">
+      </div>
+      <!-- 术语候选面板（选学科后自动弹出） -->
+      <div id="suggestionPanel" class="suggestion-panel" style="display:none">
+        <h4>💡 术语候选 <span id="suggestionHint" style="font-weight:400;color:#5dade2;font-size:11px"></span></h4>
+        <div class="suggestion-search">
+          <input type="text" id="suggestionSearch" placeholder="筛选关键词（可选）" onkeydown="if(event.key==='Enter')fetchSuggestions()">
+          <button onclick="fetchSuggestions()">筛选</button>
+        </div>
+        <div id="suggestionList" class="suggestion-list"></div>
       </div>
       <div class="form-group">
         <label>人话翻译</label>
@@ -838,6 +864,15 @@ let autoSaveTimer = null;
 let autoSaveEditingId = null;
 let autoSaveDirty = false;
 let lastAutoSaveTime = 0;
+let _discChangeHandler = null; // 学科下拉框变更监听器（新增模式用）
+
+// 主库学科名 → 学科词库域名（表名）映射
+const DISC_TO_DOMAIN = {
+  '数学': '数学科学', '物理学': '物理科学', '化学': '化学化工',
+  '生物学': '动植生物', '计算机': '计算机业', '经济学': '金融财经',
+  '法律政策': '法律诉讼', '医学心理': '医药医学', '控制论': '管理科学',
+  '跨学科': '社会科学',
+};
 
 const DISCIPLINE_NAMES = {
   cs: '计算机科学', econ: '经济学', law: '法律', cross: '跨学科',
@@ -1203,6 +1238,42 @@ function openEditModal(term = null) {
   document.getElementById('editEssence').value = term ? term.essence : '';
   document.getElementById('editTip').value = term ? term.tip : '';
   document.getElementById('editHot').checked = term ? term.hot : false;
+  // 术语候选面板：仅新增模式，选学科后自动弹出
+  const sugPanel = document.getElementById('suggestionPanel');
+  // 清理旧的学科监听器
+  if (_discChangeHandler) {
+    document.getElementById('editDiscipline').removeEventListener('change', _discChangeHandler);
+    _discChangeHandler = null;
+  }
+  if (!term) {
+    sugPanel.style.display = 'none';
+    document.getElementById('suggestionSearch').value = '';
+    document.getElementById('suggestionList').innerHTML = '';
+    document.getElementById('suggestionHint').textContent = '';
+    // 学科变更 → 自动生成ID + 加载候选术语
+    _discChangeHandler = function() {
+      const disc = document.getElementById('editDiscipline').value;
+      if (!disc) return;
+      // 自动生成下一个ID
+      fetch(`${API_BASE}/api/v1/admin/terms/next-id?discipline=${encodeURIComponent(disc)}`, {
+        headers: { 'x-admin-token': ADMIN_TOKEN }
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.data.nextId) {
+            document.getElementById('editId').value = data.data.nextId;
+          }
+        })
+        .catch(() => {});
+      // 加载候选术语（将学科名转为词库域名）
+      document.getElementById('suggestionSearch').value = '';
+      const domain = DISC_TO_DOMAIN[disc] || disc;
+      fetchSuggestions(domain);
+    };
+    document.getElementById('editDiscipline').addEventListener('change', _discChangeHandler);
+  } else {
+    sugPanel.style.display = 'none';
+  }
   updateAutoSaveStatus();
   // 仅编辑模式才绑定监听
   if (term) {
@@ -1233,6 +1304,88 @@ function closeEditModal() {
     if (!el) return;
     el.removeEventListener('input', onEditFieldChange);
     el.removeEventListener('change', onEditFieldChange);
+  });
+  // 移除学科变更监听
+  if (_discChangeHandler) {
+    document.getElementById('editDiscipline').removeEventListener('change', _discChangeHandler);
+    _discChangeHandler = null;
+  }
+  // 隐藏候选面板
+  document.getElementById('suggestionPanel').style.display = 'none';
+}
+
+// ========== 术语候选面板 ==========
+// 学科词库领域 → 显示名称 映射（包含主库映射 + 额外领域）
+const SUGGESTION_DOMAINS = {
+  '数学科学': '数学', '物理科学': '物理', '化学化工': '化学',
+  '动植生物': '生物(动植物)', '医药医学': '医学', '计算机业': '计算机',
+  '金融财经': '金融', '法律诉讼': '法律', '管理科学': '管理/控制',
+  '社会科学': '社会科学', '世界哲学': '哲学', '世界宗教': '宗教',
+  '汉语言学': '语言学', '教育教学': '教育', '土木工程': '土木',
+  '钢铁冶金': '冶金', '水利工程': '水利', '矿业勘探': '矿业',
+  '机械工程': '机械', '电子工程': '电子', '船舶工程': '船舶',
+  '安全工程': '安全', '通信工程': '通信', '敏感用词': '敏感词',
+};
+
+let _suggestionCurrentDomain = '';
+
+async function fetchSuggestions(discipline) {
+  // 优先使用传入的学科，否则用当前已选的学科
+  const domain = discipline || _suggestionCurrentDomain;
+  const keyword = document.getElementById('suggestionSearch').value.trim();
+  const listEl = document.getElementById('suggestionList');
+  const hintEl = document.getElementById('suggestionHint');
+  const panelEl = document.getElementById('suggestionPanel');
+
+  if (!domain) {
+    listEl.innerHTML = '<div class="suggestion-empty">请先选择学科</div>';
+    hintEl.textContent = '';
+    return;
+  }
+
+  _suggestionCurrentDomain = domain;
+  // 显示面板
+  panelEl.style.display = 'block';
+  listEl.innerHTML = '<div class="suggestion-loading">加载中...</div>';
+  hintEl.textContent = `— 来自「${SUGGESTION_DOMAINS[domain] || domain}」`;
+
+  try {
+    const params = new URLSearchParams({ domain: domain, limit: '30' });
+    if (keyword) params.append('q', keyword);
+
+    const res = await fetch(`${API_BASE}/api/v1/domains/suggestions?${params}`);
+    const data = await res.json();
+
+    if (!data.suggestions || data.suggestions.length === 0) {
+      listEl.innerHTML = '<div class="suggestion-empty">该学科暂无更多候选术语</div>';
+      return;
+    }
+
+    listEl.innerHTML = data.suggestions.map(s =>
+      `<span class="suggestion-tag" onclick="pickSuggestion('${escapeHtml(s.词语).replace(/'/g, '&#39;')}')">${escapeHtml(s.词语)}<span class="weight">${s.权重}</span></span>`
+    ).join('');
+  } catch (err) {
+    listEl.innerHTML = '<div class="suggestion-empty">加载失败，请确认后端已启动</div>';
+  }
+}
+
+function pickSuggestion(name) {
+  const nameInput = document.getElementById('editName');
+  nameInput.value = name;
+  nameInput.focus();
+  // 名称框闪绿
+  nameInput.style.background = '#e8f8f5';
+  nameInput.style.borderColor = '#27ae60';
+  setTimeout(() => { nameInput.style.background = ''; nameInput.style.borderColor = ''; }, 500);
+  // 被点的标签闪一下
+  const tags = document.querySelectorAll('.suggestion-tag');
+  tags.forEach(t => {
+    if (t.textContent.trim().replace(/\d+$/, '').trim() === name) {
+      t.style.background = '#27ae60';
+      t.style.color = '#fff';
+      t.style.borderColor = '#27ae60';
+      setTimeout(() => { t.style.background = ''; t.style.color = ''; t.style.borderColor = ''; }, 400);
+    }
   });
 }
 
@@ -1492,7 +1645,7 @@ async function exportTermsCSV() {
     const discLabel = discipline ? (DISCIPLINE_NAMES[discipline] || discipline) : '全部';
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = `tongwuyiming_${discLabel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `同物异名_${discLabel}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(blobUrl);
     showToast(`导出成功（${discLabel} / CSV）`, 'success');
@@ -1802,7 +1955,7 @@ function downloadImportTemplate() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'tongwuyiming_导入模板.csv';
+  a.download = '同物异名_导入模板.csv';
   a.click();
   URL.revokeObjectURL(url);
   showToast('模板已下载', 'success');

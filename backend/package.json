@@ -1,5 +1,5 @@
 {
-  "name": "tongwuyiming-backend",
+  "name": "同物异名-backend",
   "version": "1.0.0",
   "description": "同物异名 - 跨学科概念还原库后端服务",
   "main": "server.js",
@@ -11,6 +11,7 @@
     "import:学科": "node scripts/导入学科词库.js",
     "sync:to-obsidian": "node scripts/数据库同步到Obsidian.js",
     "sync:from-obsidian": "node scripts/Obsidian同步到数据库.js",
+    "sync:meilisearch": "node scripts/同步到Meilisearch.js",
     "test": "vitest run"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsdom": "^29.1.1",
+    "meilisearch": "^0.58.0",
     "openai": "^4.47.1",
     "sql.js": "^1.14.1"
   },

@@ -242,7 +242,7 @@ export default function ConceptGraph({
         }
 
         setNodes(richNodes)
-        setLinks(filteredLinks)
+        setLinks(filteredLinks as unknown as GraphLinkData[])
       })
       .catch((err) => {
         setError('加载图谱数据失败')
@@ -536,7 +536,7 @@ export default function ConceptGraph({
 
     // 根 group：被 zoom 控制
     const gRoot = svg.append('g')
-    gRootRef.current = gRoot
+    gRootRef.current = gRoot as unknown as d3.Selection<SVGGElement, unknown, SVGSVGElement, unknown>
 
     // 缩放/平移行为：滚轮缩放、拖拽平移
     const zoom = d3
@@ -554,7 +554,7 @@ export default function ConceptGraph({
     zoomBehaviorRef.current = zoom
 
     // 禁用默认双击放大（避免误触），但保留手动点击节点
-    ;(svg as d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>).on('dblclick.zoom', null)
+    ;(svg as unknown as d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>).on('dblclick.zoom', null)
 
     // 复制节点数据（让 D3 可以写入 x/y/fx/fy）
     const nodesCopy: SimNode[] = nodes.map((n) => ({ ...(n as SimNode) }))
@@ -704,8 +704,8 @@ export default function ConceptGraph({
 
     svg
       .selectAll('.nodes > g')
-      .each(function (_: SimNode, i: number, nodes_arr: ArrayLike<SVGGElement>) {
-        const g = d3.select(nodes_arr[i])
+      .each(function (_, i, nodes_arr) {
+        const g = d3.select(nodes_arr[i] as SVGGElement)
         const datum = g.datum() as SimNode
         const isVisible = activeDisciplines.has(datum.discipline)
         const matchSearch =
@@ -725,8 +725,8 @@ export default function ConceptGraph({
         }
       })
 
-    svg.selectAll('.links > line').each(function (_: SimLink, i: number, lines_arr: ArrayLike<SVGLineElement>) {
-      const l = d3.select(lines_arr[i])
+    svg.selectAll('.links > line').each(function (_, i, lines_arr) {
+      const l = d3.select(lines_arr[i] as SVGLineElement)
       const datum = l.datum() as SimLink
       const srcId =
         typeof datum.source === 'object' ? (datum.source as SimNode).id : datum.source

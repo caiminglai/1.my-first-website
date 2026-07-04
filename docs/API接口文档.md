@@ -3,8 +3,8 @@
 > **统一入口**：`backend/server.js`
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
-> **数据源**：磁盘 SQLite `data/tongwuyiming.db`（使用 better-sqlite3 驱动，同步 API 直接读写磁盘文件）
-> **更新日期**：2026-06-30
+> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Meilisearch 全文搜索引擎
+> **更新日期**：2026-07-04
 
 ---
 
@@ -93,7 +93,7 @@
   "success": true,
   "data": {
     "terms": [ ... ],
-    "total": 225,
+    "total": 1069,
     "page": 1,
     "pageSize": 1000
   }
@@ -209,6 +209,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 **接口**：`GET /api/v1/terms/search`
 
 **限流**：600 请求/分钟
+**搜索引擎**：Meilisearch 优先，不可用时自动降级 SQLite LIKE 模糊搜索
 
 **参数**：
 
@@ -1071,10 +1072,10 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 更多内容模块的管理接口请参考各模块路由文件：
 
-- 职业解构：[career.js](file:///e:/website/1.my-first-website/backend/routes/career.js)
-- 产业岗位：[industry.js](file:///e:/website/1.my-first-website/backend/routes/industry.js)
-- 概念抗体：[antibody.js](file:///e:/website/1.my-first-website/backend/routes/antibody.js)
-- 高薪技术岗：[jobs.js](file:///e:/website/1.my-first-website/backend/routes/jobs.js)
+- 职业解构：[职业.js](file:///e:/website/1.my-first-website/backend/routes/职业.js)
+- 产业岗位：[产业.js](file:///e:/website/1.my-first-website/backend/routes/产业.js)
+- 概念抗体：[抗体.js](file:///e:/website/1.my-first-website/backend/routes/抗体.js)
+- 高薪技术岗：[岗位.js](file:///e:/website/1.my-first-website/backend/routes/岗位.js)
 
 ---
 
@@ -1106,19 +1107,20 @@ const categories = await getJobCategories()
 
 | 文件 | 挂载路径 | 说明 |
 |------|---------|------|
-| [terms.js](file:///e:/website/1.my-first-website/backend/routes/terms.js) | `/api/v1/terms` | 词条查询/搜索/CRUD |
-| [graph.js](file:///e:/website/1.my-first-website/backend/routes/graph.js) | `/api/v1/graph` | 知识图谱 nodes/links |
-| [compare.js](file:///e:/website/1.my-first-website/backend/routes/compare.js) | `/api/v1/comparisons` | 概念对比 |
-| [scenarios.js](file:///e:/website/1.my-first-website/backend/routes/scenarios.js) | `/api/v1/scenarios` | 情景还原 |
-| [career.js](file:///e:/website/1.my-first-website/backend/routes/career.js) | `/api/v1/career` | 职业解构 |
-| [industry.js](file:///e:/website/1.my-first-website/backend/routes/industry.js) | `/api/v1/industry` | 产业岗位 |
-| [antibody.js](file:///e:/website/1.my-first-website/backend/routes/antibody.js) | `/api/v1/antibody` | 概念抗体 |
-| [jobs.js](file:///e:/website/1.my-first-website/backend/routes/jobs.js) | `/api/v1/jobs` | 高薪技术岗 |
-| [stats.js](file:///e:/website/1.my-first-website/backend/routes/stats.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
-| [submissions.js](file:///e:/website/1.my-first-website/backend/routes/submissions.js) | `/api/v1/submissions` | 用户提交 |
-| [admin.js](file:///e:/website/1.my-first-website/backend/routes/admin.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
-| [ai.js](file:///e:/website/1.my-first-website/backend/routes/ai.js) | `/api/v1/ai` | AI 问答 |
+| [词条.js](file:///e:/website/1.my-first-website/backend/routes/词条.js) | `/api/v1/terms` | 词条查询/搜索/CRUD |
+| [图谱.js](file:///e:/website/1.my-first-website/backend/routes/图谱.js) | `/api/v1/graph` | 知识图谱 nodes/links |
+| [对比.js](file:///e:/website/1.my-first-website/backend/routes/对比.js) | `/api/v1/comparisons` | 概念对比 |
+| [情景.js](file:///e:/website/1.my-first-website/backend/routes/情景.js) | `/api/v1/scenarios` | 情景还原 |
+| [职业.js](file:///e:/website/1.my-first-website/backend/routes/职业.js) | `/api/v1/career` | 职业解构 |
+| [产业.js](file:///e:/website/1.my-first-website/backend/routes/产业.js) | `/api/v1/industry` | 产业岗位 |
+| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/抗体.js) | `/api/v1/antibody` | 概念抗体 |
+| [岗位.js](file:///e:/website/1.my-first-website/backend/routes/岗位.js) | `/api/v1/jobs` | 高薪技术岗 |
+| [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
+| [提交.js](file:///e:/website/1.my-first-website/backend/routes/提交.js) | `/api/v1/submissions` | 用户提交 |
+| [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
+| [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI.js) | `/api/v1/ai` | AI 问答 |
+| [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
 
 ---
 
-*更新日期：2026-06-30*
+*更新日期：2026-07-04*

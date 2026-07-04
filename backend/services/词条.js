@@ -2,6 +2,7 @@ const termsDb = require("../db/词条");
 const graphDb = require("../db/图谱");
 const { prepare, markDirty } = require("../db/入口");
 const cache = require("./缓存");
+const meili = require("./Meilisearch服务");
 const { parsePagination, validateString, validateId, validateEnum } = require("../utils/验证器");
 const { CACHE_KEYS, buildPageKey, buildCacheKey } = require("../utils/缓存键");
 
@@ -14,7 +15,7 @@ function getTerms(page = 1, pageSize = 50, discipline) {
   );
 }
 
-function searchTerms(query, limit = 20) {
+async function searchTerms(query, limit = 20) {
   if (!query || query.trim().length === 0) {
     throw new Error("MISSING_QUERY");
   }
@@ -22,6 +23,68 @@ function searchTerms(query, limit = 20) {
   const key = buildCacheKey(CACHE_KEYS.TERMS.SEARCH, query.toLowerCase().trim(), safeLimit);
   const cached = cache.get(key);
   if (cached) return cached;
+
+  // 优先使用 Meilisearch（支持模糊搜索、高亮、相关性排序）
+  try {
+    const available = await meili.isAvailable();
+    if (available) {
+      const meiliResult = await meili.search(query, safeLimit);
+      const result = {
+        results: meiliResult.hits.map((hit) => {
+          // 解析别名字段
+          let aliases = [];
+          try {
+            aliases = hit.跨学科别名 ? JSON.parse(hit.跨学科别名) : [];
+          } catch {
+            aliases = hit.跨学科别名 ? hit.跨学科别名.split(" ").filter(Boolean) : [];
+          }
+
+          const term = {
+            id: hit.词条ID,
+            discipline: hit.学科,
+            name: hit.名称,
+            translation: hit.翻译,
+            essence: hit.本质,
+            tip: hit.提示,
+            aliases,
+            hot: hit.热度,
+          };
+
+          // 提取 Meilisearch 高亮信息
+          const highlights = [];
+          const formatted = hit._formatted;
+          if (formatted) {
+            if (formatted.名称 && formatted.名称 !== hit.名称) {
+              highlights.push({ field: "name", text: formatted.名称 });
+            }
+            if (formatted.翻译 && formatted.翻译 !== hit.翻译) {
+              highlights.push({ field: "translation", text: formatted.翻译 });
+            }
+            if (formatted.本质 && formatted.本质 !== hit.本质) {
+              highlights.push({ field: "essence", text: formatted.本质 });
+            }
+            if (formatted.提示 && formatted.提示 !== hit.提示) {
+              highlights.push({ field: "tip", text: formatted.提示 });
+            }
+          }
+
+          return {
+            term,
+            score: hit._rankingScore || 1,
+            highlights,
+          };
+        }),
+        total: meiliResult.total,
+        query,
+      };
+      cache.set(key, result);
+      return result;
+    }
+  } catch (err) {
+    console.warn("[Meilisearch] 搜索失败，降级到 SQLite:", err.message);
+  }
+
+  // 降级：SQLite LIKE 搜索
   const terms = termsDb.searchTerms(query, safeLimit);
   const result = {
     results: terms.map((t) => ({ term: t, score: 1, highlights: [] })),
@@ -105,6 +168,10 @@ function createTerm(data) {
   markDirty();
   cache.invalidatePrefix("terms_");
   cache.invalidate("disciplines", `term:${id}`, "graph_nodes", "graph_links");
+
+  // 同步到 Meilisearch
+  meili.addDocument({ id, discipline, name, translation, essence, tip, hot, aliases }).catch(() => {});
+
   return { id, changes: result.changes };
 }
 
@@ -132,6 +199,13 @@ function updateTerm(id, updates) {
   markDirty();
   cache.invalidatePrefix("terms_");
   cache.invalidate(`term:${id}`, "graph_nodes", "graph_links");
+
+  // 同步到 Meilisearch（读取更新后的完整词条）
+  const updatedTerm = termsDb.getTermById(id);
+  if (updatedTerm) {
+    meili.updateDocument(updatedTerm).catch(() => {});
+  }
+
   return { changes: result.changes };
 }
 
@@ -141,6 +215,10 @@ function deleteTerm(id) {
   markDirty();
   cache.invalidatePrefix("terms_");
   cache.invalidate(`term:${id}`, "graph_nodes", "graph_links", "graph_data");
+
+  // 同步到 Meilisearch
+  meili.deleteDocument(id).catch(() => {});
+
   return { changes: result.changes };
 }
 

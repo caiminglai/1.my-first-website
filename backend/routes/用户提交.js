@@ -90,7 +90,7 @@ router.put("/admin/:id", adminAuth, (req, res) => {
   }
 });
 
-router.delete("/admin/stats", adminAuth, (req, res) => {
+router.get("/admin/stats", adminAuth, (req, res) => {
   try {
     const stats = submissionsService.getCountByStatus();
     res.json({ success: true, data: stats });

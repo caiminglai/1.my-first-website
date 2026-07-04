@@ -27,6 +27,8 @@ interface SearchSuggestion {
   name: string
   translation: string
   discipline: string
+  score?: number
+  highlights?: { field: string; text: string }[]
 }
 
 // API 搜索结果项类型已迁移到 @/api/types (SearchResult)
@@ -91,6 +93,41 @@ export default function SearchSection({
     return discipline?.color || '#8B7D6B'
   }
 
+  // 将 Meilisearch 高亮文本（含 <em> 标签）渲染为 React 元素
+  const renderHighlighted = (highlightText: string | undefined, fallback: string) => {
+    if (!highlightText) return <>{fallback}</>
+    // 按 <em> 和 </em> 分割
+    const parts = highlightText.split(/(<\/?em>)/)
+    let inEm = false
+    return (
+      <>
+        {parts.map((part, i) => {
+          if (part === '<em>') {
+            inEm = true
+            return null
+          }
+          if (part === '</em>') {
+            inEm = false
+            return null
+          }
+          if (!part) return null
+          return inEm ? (
+            <em key={i} className="not-italic text-warm-accent font-semibold">
+              {part}
+            </em>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        })}
+      </>
+    )
+  }
+
+  // 获取某字段的高亮文本
+  const getHighlight = (suggestion: SearchSuggestion, field: string) => {
+    return suggestion.highlights?.find((h) => h.field === field)?.text
+  }
+
   const addToHistory = useCallback((term: string) => {
     const trimmed = term.trim()
     if (!trimmed) return
@@ -133,6 +170,8 @@ export default function SearchSection({
             name: item.term.name,
             translation: item.term.translation,
             discipline: item.term.discipline as string,
+            score: item.score,
+            highlights: item.highlights,
           })),
         )
       } else {
@@ -308,10 +347,10 @@ export default function SearchSection({
                       </span>
                       <div className="flex-1 min-w-0">
                         <div className="text-warm-dark dark:text-warm-text font-medium truncate">
-                          {suggestion.name}
+                          {renderHighlighted(getHighlight(suggestion, 'name'), suggestion.name)}
                         </div>
                         <div className="text-sm text-warm-text truncate">
-                          {suggestion.translation}
+                          {renderHighlighted(getHighlight(suggestion, 'translation'), suggestion.translation)}
                         </div>
                       </div>
                     </div>

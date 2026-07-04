@@ -4,7 +4,7 @@
  * ============================================================
  *
  *  设计原则：
- *    1. tongwuyiming.db 是唯一数据源，任何读写都直接操作磁盘文件
+ *    1. 同物异名.db 是唯一数据源，任何读写都直接操作磁盘文件
  *    2. 数据库文件不存在时，自动从 schema.sql 创建空表
  *    3. 写入操作立即同步到磁盘，确保外部修改立即可见
  *    4. 不使用内存数据库 + 定时回写机制，避免覆盖外部修改
@@ -22,9 +22,9 @@ const Database = require("better-sqlite3");  // SQLite 数据库驱动
 /**
  * 数据库文件路径
  * 优先级：环境变量 > 默认相对路径
- * 默认位置：项目根目录/data/tongwuyiming.db
+ * 默认位置：项目根目录/data/同物异名.db
  */
-const 数据库文件路径 = process.env.DB_PATH || path.join(__dirname, "..", "..", "data", "tongwuyiming.db");
+const 数据库文件路径 = process.env.DB_PATH || path.join(__dirname, "..", "..", "data", "同物异名.db");
 
 /** 数据库所在目录 */
 const 数据目录 = path.dirname(数据库文件路径);

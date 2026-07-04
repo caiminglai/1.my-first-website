@@ -193,13 +193,10 @@ const distPath = path.join(__dirname, "..", "app", "dist");
 if (fs.existsSync(distPath)) {
   // 注意：express.static 必须放在 API 路由之后，并且 app.get('*') 不能拦截 /api/* 请求
   app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    // 排除 API 请求
-    if (req.path.startsWith("/api/")) {
-      return res.status(404).json({
-        success: false,
-        error: { code: "NOT_FOUND", message: "接口不存在" },
-      });
+  app.get("*", (req, res, next) => {
+    // 排除 API 和 twym 前缀请求，让它们落到下面的 404 处理器
+    if (req.path.startsWith("/api/") || req.path.startsWith("/twym/")) {
+      return next();
     }
     res.type("html");
     res.sendFile(path.join(distPath, "index.html"));
@@ -216,6 +213,26 @@ app.use((req, res) => {
 
 // ===== 错误处理 =====
 app.use(errorLogger);
+
+// Error code to status code mapping
+const ERROR_MAP = {
+  'MISSING_PARAM': { status: 400, code: 'BAD_REQUEST' },
+  'MISSING_FIELDS': { status: 400, code: 'BAD_REQUEST' },
+  'MISSING_QUERY': { status: 400, code: 'BAD_REQUEST' },
+  'MISSING_ID': { status: 400, code: 'BAD_REQUEST' },
+  'MISSING_STATUS': { status: 400, code: 'BAD_REQUEST' },
+  'MISSING_CSV': { status: 400, code: 'BAD_REQUEST' },
+  'INVALID_PARAM': { status: 400, code: 'BAD_REQUEST' },
+  'INVALID_ORDER': { status: 400, code: 'BAD_REQUEST' },
+  'VALIDATION_ERROR': { status: 400, code: 'BAD_REQUEST' },
+  'NO_FIELDS': { status: 400, code: 'BAD_REQUEST' },
+  'NOT_FOUND': { status: 404, code: 'NOT_FOUND' },
+  'UNAUTHORIZED': { status: 401, code: 'UNAUTHORIZED' },
+  'RATE_LIMITED': { status: 429, code: 'RATE_LIMITED' },
+  'DUPLICATE_KEY': { status: 409, code: 'DUPLICATE_KEY' },
+  'HAS_TERMS': { status: 400, code: 'BAD_REQUEST' },
+};
+
 app.use((err, req, res, _next) => {
   const requestId = req.requestId || "unknown";
   
@@ -224,29 +241,26 @@ app.use((err, req, res, _next) => {
   let errorCode = "INTERNAL_ERROR";
   let message = "服务器内部错误";
   
-  // 根据错误类型设置响应
+  // 根据错误前缀匹配状态码
+  let matched = false;
   if (err.message) {
-    if (err.message.includes("MISSING_")) {
-      statusCode = 400;
-      errorCode = "BAD_REQUEST";
-      message = err.message;
-    } else if (err.message.includes("INVALID_")) {
-      statusCode = 400;
-      errorCode = "BAD_REQUEST";
-      message = err.message;
-    } else if (err.message.includes("NOT_FOUND")) {
-      statusCode = 404;
-      errorCode = "NOT_FOUND";
-      message = "资源不存在";
-    } else if (err.message.includes("UNAUTHORIZED")) {
-      statusCode = 401;
-      errorCode = "UNAUTHORIZED";
-      message = "未授权访问";
-    } else if (err.message.includes("RATE_LIMITED")) {
-      statusCode = 429;
-      errorCode = "RATE_LIMITED";
-      message = "请求过于频繁";
+    for (const [prefix, config] of Object.entries(ERROR_MAP)) {
+      if (err.message.startsWith(prefix)) {
+        statusCode = config.status;
+        errorCode = config.code;
+        if (prefix === 'NOT_FOUND') message = '资源不存在';
+        else if (prefix === 'UNAUTHORIZED') message = '未授权访问';
+        else if (prefix === 'RATE_LIMITED') message = '请求过于频繁';
+        else message = err.message;
+        matched = true;
+        break;
+      }
     }
+  }
+  if (!matched) {
+    statusCode = 500;
+    errorCode = 'INTERNAL_ERROR';
+    message = '服务器内部错误';
   }
   
   // 生产环境不返回详细错误信息

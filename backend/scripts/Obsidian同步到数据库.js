@@ -28,7 +28,7 @@
  *
  *  示例：
  *    node obsidian-to-db.js
- *    node obsidian-to-db.js ./obsidian ./data/tongwuyiming.db --delete-propagate
+ *    node obsidian-to-db.js ./obsidian ./data/同物异名.db --delete-propagate
  *    node obsidian-to-db.js --dry-run --delete-propagate
  *    node obsidian-to-db.js --modules=词条
  * ============================================================
@@ -73,7 +73,7 @@ const { positional, options: CLI_OPTIONS } = parseArgs();
 const OBSIDIAN_PATH = positional[0] || path.join(__dirname, '..', '..', 'obsidian');
 
 /** 数据库文件路径 */
-const DB_PATH = positional[1] || path.join(__dirname, '..', '..', 'data', 'tongwuyiming.db');
+const DB_PATH = positional[1] || path.join(__dirname, '..', '..', 'data', '同物异名.db');
 
 // ==================== 配置常量 ====================
 

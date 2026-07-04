@@ -62,8 +62,8 @@ async function request<T>(
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new APIErrorException(
-          errorData.message || `HTTP ${response.status}`,
-          errorData.code || `HTTP_${response.status}`,
+          errorData.error?.message || `HTTP ${response.status}`,
+          errorData.error?.code || `HTTP_${response.status}`,
           response.status,
         )
       }

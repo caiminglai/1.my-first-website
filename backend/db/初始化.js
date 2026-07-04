@@ -2,7 +2,7 @@
  * 数据库初始化脚本（严格安全模式）
  *
  * 规则：
- *   1. 数据库文件路径固定为: E:\website\1.my-first-website\data\tongwuyiming.db
+ *   1. 数据库文件路径固定为: E:\website\1.my-first-website\data\同物异名.db
  *   2. 若数据库文件已存在，则**跳过所有初始化**，直接退出
  *   3. 仅使用 CREATE TABLE IF NOT EXISTS，绝不使用 DROP TABLE
  *   4. 绝不主动删除 .db 文件
@@ -18,7 +18,7 @@ const path = require("path");
 const initSqlJs = require("sql.js");
 
 // 规则 1：使用相对路径，兼容不同运行环境
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, "..", "..", "data", "tongwuyiming.db");
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "..", "..", "data", "同物异名.db");
 const DATA_DIR = path.dirname(DB_PATH);
 const SCHEMA_PATH = path.join(__dirname, "schema.sql");
 

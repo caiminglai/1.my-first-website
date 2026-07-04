@@ -100,6 +100,47 @@ router.get("/terms", (req, res) => {
   }
 });
 
+// 自动生成下一个词条ID（根据学科前缀）
+router.get("/terms/next-id", (req, res) => {
+  try {
+    const { discipline } = req.query;
+    if (!discipline) {
+      return res.status(400).json({
+        success: false,
+        error: { code: "MISSING_DISCIPLINE", message: "缺少学科参数" },
+      });
+    }
+    const { prepare } = require("../db/入口");
+    // 学科 → ID前缀映射
+    const prefixMap = {
+      '数学': 'm', '计算机': 'c', '经济学': 'e',
+      '医学心理': 'd', '法律政策': 'l', '控制论': 'b',
+      '跨学科': 'x', '物理学': 'p', '化学': 'ch', '生物学': 'bio',
+    };
+    const prefix = prefixMap[discipline] || discipline.charAt(0).toLowerCase();
+    const row = prepare(
+      "SELECT 词条ID FROM 词条 WHERE 词条ID LIKE ? ORDER BY 词条ID DESC LIMIT 1"
+    ).get(prefix + '%');
+    let nextId;
+    if (row) {
+      const match = row.词条ID.match(new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)$'));
+      if (match) {
+        nextId = prefix + String(parseInt(match[1]) + 1).padStart(match[1].length, '0');
+      } else {
+        nextId = prefix + '001';
+      }
+    } else {
+      nextId = prefix + '001';
+    }
+    res.json({ success: true, data: { nextId, discipline, prefix } });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: { code: "INTERNAL_ERROR", message: error.message },
+    });
+  }
+});
+
 router.get("/terms/export/csv", (req, res) => {
   try {
     const { discipline } = req.query;
@@ -382,7 +423,7 @@ router.post("/backup", async (req, res) => {
 
     const db = require("../db/入口");
     await db.saveDB();
-    const dbPath = path.join(__dirname, "..", "..", "data", "tongwuyiming.db");
+    const dbPath = path.join(__dirname, "..", "..", "data", "同物异名.db");
     fs.copyFileSync(dbPath, backupPath);
 
     res.json({ success: true, data: { filename, timestamp } });

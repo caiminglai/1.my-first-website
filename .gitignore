@@ -65,8 +65,17 @@ backend/logs/
 *.db-wal
 *.db-journal
 
+# 例外：主数据库体积很小，纳入 Git 作为安全快照
+!data/同物异名.db
+
 # 数据库备份目录（含历史备份）
 data/backups/
+
+# Meilisearch 搜索引擎索引数据（运行时自动生成，无需提交）
+backend/meili_data/
+
+# Meilisearch 可执行文件（二进制，不纳入 Git 管理）
+backend/bin/
 
 # 注：如需提交空的 data 目录结构，可在 data/backups/ 下放 .gitkeep
 

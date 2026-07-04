@@ -56,7 +56,6 @@ function batchCreateTerms(items) {
       const insert = prepare(
         `INSERT INTO 词条 (词条ID, 学科, 名称, 翻译, 本质, 提示, 跨学科别名, 热度) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       );
-      console.log("[DEBUG] Inserting term:", item.id, item.name);
       const result = insert.run(
         item.id,
         item.discipline,
@@ -67,10 +66,8 @@ function batchCreateTerms(items) {
         JSON.stringify(item.aliases || []),
         item.hot ? 1 : 0,
       );
-      console.log("[DEBUG] Insert result:", result);
       success++;
     } catch (err) {
-      console.log("[DEBUG] Insert error:", err, typeof err, err && err.message, err && err.stack);
       failed++;
       errors.push({ id: item.id, error: err && err.message ? err.message : String(err) });
     }

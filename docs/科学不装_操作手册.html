@@ -594,7 +594,7 @@ git clone /root/git-kxub.git kxub-obsidian</pre>
     <p>脚本位置：<span class="path">E:\website\1.my-first-website\data\db-to-obsidian.js</span></p>
 
     <pre>// 配置
-const DB_PATH = 'E:\\website\\1.my-first-website\\data\\tongwuyiming.db';
+const DB_PATH = 'E:\\website\\1.my-first-website\\data\\同物异名.db';
 const OBSIDIAN_PATH = 'E:\\website\\科学不装';
 
 // 运行
@@ -657,7 +657,7 @@ Git 插件每5分钟自动：git add &rarr; git commit &rarr; git push
         <tr><th>备份方式</th><th>命令/操作</th><th>频率</th></tr>
         <tr><td>自动备份</td><td>Git 插件自动提交</td><td>每5分钟</td></tr>
         <tr><td>数据库备份</td><td>sync-v2.sh 自动备份</td><td>每次同步</td></tr>
-        <tr><td>手动备份</td><td>cp tongwuyiming.db backups/</td><td>重大修改前</td></tr>
+        <tr><td>手动备份</td><td>cp 同物异名.db backups/</td><td>重大修改前</td></tr>
         <tr><td>清理旧备份</td><td>保留最近7天</td><td>自动</td></tr>
     </table>
 </div>
@@ -687,7 +687,7 @@ Git 插件每5分钟自动：git add &rarr; git commit &rarr; git push
         <tr>
             <td>词条显示为0</td>
             <td>数据库为空/路径错误</td>
-            <td>检查 data/tongwuyiming.db 是否存在</td>
+            <td>检查 data/同物异名.db 是否存在</td>
         </tr>
         <tr>
             <td>解析脚本报错</td>
@@ -723,7 +723,7 @@ pm2 stop my-website           # 停止
 pm2 save                      # 保存配置</pre>
 
     <h4>SQLite 操作</h4>
-    <pre>sqlite3 tongwuyiming.db
+    <pre>sqlite3 同物异名.db
 &gt; SELECT COUNT(*) FROM 词条;
 &gt; SELECT 名称, 学科 FROM 词条 LIMIT 10;
 &gt; .quit</pre>
