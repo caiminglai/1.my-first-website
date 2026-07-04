@@ -193,6 +193,16 @@ $RECYCLE.BIN/
 # *.gif
 # *.svg
 
+# 收款二维码（个人敏感图片，不提交到公开仓库，部署时单独上传）
+app/public/wechat-pay.jpg
+app/public/alipay.jpg
+app/public/wechat-qr.png
+app/public/alipay-qr.png
+public/wechat-pay.jpg
+public/alipay.jpg
+public/wechat-qr.png
+public/alipay-qr.png
+
 # 锁文件说明：
 # - package-lock.json 应该提交，以确保依赖版本一致
 # - 本项目已在 app/ 和 backend/ 下各自提交 package-lock.json

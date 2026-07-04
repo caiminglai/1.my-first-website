@@ -118,20 +118,31 @@ router.get("/terms/next-id", (req, res) => {
       '跨学科': 'x', '物理学': 'p', '化学': 'ch', '生物学': 'bio',
     };
     const prefix = prefixMap[discipline] || discipline.charAt(0).toLowerCase();
-    const row = prepare(
-      "SELECT 词条ID FROM 词条 WHERE 词条ID LIKE ? ORDER BY 词条ID DESC LIMIT 1"
-    ).get(prefix + '%');
-    let nextId;
-    if (row) {
-      const match = row.词条ID.match(new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)$'));
+    const safePrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rows = prepare(
+      "SELECT 词条ID FROM 词条 WHERE 词条ID LIKE ?"
+    ).all(prefix + '%');
+    
+    let maxNum = 0;
+    let maxDigits = 3; // 默认3位数字
+    const numRegex = new RegExp('^' + safePrefix + '(\\d+)$');
+    
+    for (const row of rows) {
+      const match = row.词条ID.match(numRegex);
       if (match) {
-        nextId = prefix + String(parseInt(match[1]) + 1).padStart(match[1].length, '0');
-      } else {
-        nextId = prefix + '001';
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) {
+          maxNum = num;
+          maxDigits = match[1].length;
+        } else if (num === maxNum && match[1].length > maxDigits) {
+          maxDigits = match[1].length;
+        }
       }
-    } else {
-      nextId = prefix + '001';
     }
+    
+    const nextNum = maxNum + 1;
+    const nextId = prefix + String(nextNum).padStart(maxDigits, '0');
+    
     res.json({ success: true, data: { nextId, discipline, prefix } });
   } catch (error) {
     res.status(500).json({

@@ -387,7 +387,7 @@
       return '';
     }
     const API_BASE = _getBasePath();
-    let ADMIN_TOKEN = localStorage.getItem('adminToken') || 'your_admin_password';
+    let ADMIN_TOKEN = localStorage.getItem('adminToken') || '';
     localStorage.setItem('adminToken', ADMIN_TOKEN);
     let antibodies = [];
 
