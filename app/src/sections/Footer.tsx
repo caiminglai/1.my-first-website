@@ -1,4 +1,3 @@
-import { MessageCircle, Coffee, Heart, Maximize2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -6,6 +5,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Coffee, Heart, Maximize2, MessageCircle, Shield } from 'lucide-react'
 import { useState } from 'react'
 
 export default function Footer() {
@@ -26,9 +26,20 @@ export default function Footer() {
           <span className="text-base text-warm-bg font-display">同物异名</span>
         </div>
 
-        {/* 中间 - 备案信息 */}
-        <div className="flex flex-col items-center gap-3">
-          <div className="text-center text-sm text-warm-text">让复杂变简单 · 2026</div>
+        {/* 中间 - 备案信息（政府网站标准样式） */}
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="text-center text-xs text-gray-500">让复杂变简单 · 2026</div>
+          <div className="text-center text-xs text-gray-400">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
+              your_icp_number
+            </a>
+          </div>
+          <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
+            <Shield className="w-3.5 h-3.5 text-gray-500" />
+            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=61102502000056" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
+              陕公网安备61102502000056号
+            </a>
+          </div>
         </div>
 
         {/* 右侧 - 咖啡按钮（桌面右对齐，移动端居中） */}

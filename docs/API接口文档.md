@@ -1072,10 +1072,10 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 更多内容模块的管理接口请参考各模块路由文件：
 
-- 职业解构：[职业.js](file:///e:/website/1.my-first-website/backend/routes/职业.js)
-- 产业岗位：[产业.js](file:///e:/website/1.my-first-website/backend/routes/产业.js)
-- 概念抗体：[抗体.js](file:///e:/website/1.my-first-website/backend/routes/抗体.js)
-- 高薪技术岗：[岗位.js](file:///e:/website/1.my-first-website/backend/routes/岗位.js)
+- 职业解构：[职业.js](file:///e:/website/1.my-first-website/backend/routes/职业解构.js)
+- 产业岗位：[产业.js](file:///e:/website/1.my-first-website/backend/routes/产业岗位.js)
+- 概念抗体：[抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js)
+- 高薪技术岗：[岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js)
 
 ---
 
@@ -1108,17 +1108,17 @@ const categories = await getJobCategories()
 | 文件 | 挂载路径 | 说明 |
 |------|---------|------|
 | [词条.js](file:///e:/website/1.my-first-website/backend/routes/词条.js) | `/api/v1/terms` | 词条查询/搜索/CRUD |
-| [图谱.js](file:///e:/website/1.my-first-website/backend/routes/图谱.js) | `/api/v1/graph` | 知识图谱 nodes/links |
-| [对比.js](file:///e:/website/1.my-first-website/backend/routes/对比.js) | `/api/v1/comparisons` | 概念对比 |
-| [情景.js](file:///e:/website/1.my-first-website/backend/routes/情景.js) | `/api/v1/scenarios` | 情景还原 |
-| [职业.js](file:///e:/website/1.my-first-website/backend/routes/职业.js) | `/api/v1/career` | 职业解构 |
-| [产业.js](file:///e:/website/1.my-first-website/backend/routes/产业.js) | `/api/v1/industry` | 产业岗位 |
-| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/抗体.js) | `/api/v1/antibody` | 概念抗体 |
-| [岗位.js](file:///e:/website/1.my-first-website/backend/routes/岗位.js) | `/api/v1/jobs` | 高薪技术岗 |
+| [图谱.js](file:///e:/website/1.my-first-website/backend/routes/知识图谱.js) | `/api/v1/graph` | 知识图谱 nodes/links |
+| [对比.js](file:///e:/website/1.my-first-website/backend/routes/概念对比.js) | `/api/v1/comparisons` | 概念对比 |
+| [情景.js](file:///e:/website/1.my-first-website/backend/routes/情景还原.js) | `/api/v1/scenarios` | 情景还原 |
+| [职业.js](file:///e:/website/1.my-first-website/backend/routes/职业解构.js) | `/api/v1/career` | 职业解构 |
+| [产业.js](file:///e:/website/1.my-first-website/backend/routes/产业岗位.js) | `/api/v1/industry` | 产业岗位 |
+| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js) | `/api/v1/antibody` | 概念抗体 |
+| [岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
 | [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
-| [提交.js](file:///e:/website/1.my-first-website/backend/routes/提交.js) | `/api/v1/submissions` | 用户提交 |
+| [提交.js](file:///e:/website/1.my-first-website/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
 | [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
-| [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI.js) | `/api/v1/ai` | AI 问答 |
+| [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
 | [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
 
 ---

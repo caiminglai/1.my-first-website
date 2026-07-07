@@ -182,14 +182,14 @@ git push origin main
 |------|------|
 | `模板/词条.md` | 词条模板 |
 | `模板/概念对比.md` | 概念对比模板 |
-| `backend/scripts/Obsidian同步到数据库.js` | Markdown → 数据库解析脚本 |
-| `backend/scripts/数据库同步到Obsidian.js` | 数据库 → Obsidian 反向同步（补双链） |
-| `backend/scripts/数据库备份.js` | 数据库备份脚本 |
-| `backend/scripts/Obsidian同步.js` | 服务器端 Obsidian 同步入口 |
+| `backend/services/Obsidian同步.js` | Markdown → 数据库解析脚本 |
+| `scripts/数据库同步到Obsidian.js` | 数据库 → Obsidian 反向同步（补双链） |
+| `scripts/数据库备份.js` | 数据库备份脚本 |
+| `backend/services/Obsidian同步.js` | 服务器端 Obsidian 同步入口 |
 | `scripts/启动服务.bat` | 一键启动前后端服务 |
 | `scripts/端口清理.bat` | 清理被占用的端口 |
 | `backend/services/Meilisearch服务.js` | Meilisearch 搜索服务封装 |
-| `backend/scripts/全量同步到Meilisearch.js` | 全量同步词条到 Meilisearch 索引 |
+| `scripts/同步到Meilisearch.js` | 全量同步词条到 Meilisearch 索引 |
 
 ---
 
