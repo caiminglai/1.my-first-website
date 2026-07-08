@@ -3,10 +3,15 @@ const router = express.Router();
 const submissionsService = require("../services/用户提交");
 const { adminAuth } = require("../middleware/安全");
 
+// 公开接口：剥离联系方式，防止泄露用户隐私
+function stripContact(list) {
+  return list.map(({ contact, ...rest }) => rest);
+}
+
 router.get("/", (req, res) => {
   try {
     const list = submissionsService.getSubmissions("pending");
-    res.json({ success: true, data: list });
+    res.json({ success: true, data: stripContact(list) });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -18,7 +23,7 @@ router.get("/", (req, res) => {
 router.get("/approved", (req, res) => {
   try {
     const list = submissionsService.getSubmissions("approved");
-    res.json({ success: true, data: list });
+    res.json({ success: true, data: stripContact(list) });
   } catch (error) {
     res.status(500).json({
       success: false,

@@ -376,7 +376,7 @@ export default function AIAssistant() {
                       </div>
 
                       <div className="text-xs text-gray-500 dark:text-gray-400 pt-1">
-                        💡 配置保存在浏览器本地，不会上传到服务器。切换设备需要重新配置。
+                        💡 API Key 保存在浏览器本地（关闭标签页后清除）。每次对话时 Key 会通过加密连接发送到后端代理转发，不会存储在服务器。
                       </div>
                     </div>
                   </motion.div>

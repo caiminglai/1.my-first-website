@@ -43,6 +43,48 @@ const AI_SERVICES = {
   },
 };
 
+// SSRF 防护：已知 LLM 服务商域名白名单
+const ALLOWED_LLM_HOSTS = new Set([
+  "api.openai.com",
+  "api.anthropic.com",
+  "dashscope.aliyuncs.com",
+  "open.bigmodel.cn",
+]);
+
+// 私有/内网 IP 段（阻止 SSRF 打内网）
+const PRIVATE_IP_PATTERNS = [
+  /^127\./, /^10\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./,
+  /^169\.254\./, /^0\./, /^::1$/, /^fe80:/, /^fc00:/, /^fd00:/,
+];
+
+function validateLLMUrl(urlString) {
+  let parsed;
+  try {
+    parsed = new URL(urlString);
+  } catch {
+    throw new Error("无效的URL格式");
+  }
+  // 只允许 https（开发环境允许 http localhost）
+  if (parsed.protocol !== "https:" && !(parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1")) {
+    throw new Error("仅允许HTTPS协议");
+  }
+  // 阻止内网 IP
+  for (const pattern of PRIVATE_IP_PATTERNS) {
+    if (pattern.test(parsed.hostname)) {
+      throw new Error("不允许访问内网地址");
+    }
+  }
+  // 白名单域名检查（custom 提供商也需要在白名单内或由管理员配置）
+  if (!ALLOWED_LLM_HOSTS.has(parsed.hostname)) {
+    // 允许通过环境变量 AI_ALLOWED_HOSTS 扩展白名单
+    const extraHosts = (process.env.AI_ALLOWED_HOSTS || "").split(",").map(h => h.trim()).filter(Boolean);
+    if (!extraHosts.includes(parsed.hostname)) {
+      throw new Error(`不允许访问此域名: ${parsed.hostname}，如需使用请设置 AI_ALLOWED_HOSTS 环境变量`);
+    }
+  }
+  return urlString;
+}
+
 function getProviderInfo(provider) {
   return AI_SERVICES[provider] || AI_SERVICES.openai;
 }
@@ -74,7 +116,7 @@ function buildSystemPrompt() {
 async function callLLM({ provider, apiKey, baseUrl, model, question }) {
   const info = getProviderInfo(provider);
   const finalModel = model || info.defaultModel;
-  const url = info.buildUrl(baseUrl);
+  const url = validateLLMUrl(info.buildUrl(baseUrl));
   const systemPrompt = buildSystemPrompt();
 
   if (provider === "anthropic") {
@@ -96,7 +138,7 @@ async function callLLM({ provider, apiKey, baseUrl, model, question }) {
 async function* callLLMStream({ provider, apiKey, baseUrl, model, question }) {
   const info = getProviderInfo(provider);
   const finalModel = model || info.defaultModel;
-  const url = info.buildUrl(baseUrl);
+  const url = validateLLMUrl(info.buildUrl(baseUrl));
   const systemPrompt = buildSystemPrompt();
 
   if (provider === "anthropic") {

@@ -12,14 +12,18 @@ const path = require('path');
 const { adminAuth } = require('../middleware/安全');
 const Database = require('better-sqlite3');
 
-// ── 数据库连接（只读） ─
+// ── 数据库连接（只读，用于查询） ─
 const DB_PATH = path.join(__dirname, '..', '..', 'data', '学科词库.db');
 let db;
+let writeDb;  // 可写连接，仅用于管理删除操作
 let 表名列表 = [];
 
 try {
   db = new Database(DB_PATH, { readonly: true });
   db.pragma('journal_mode = WAL');
+  // 可写连接（管理操作专用）
+  writeDb = new Database(DB_PATH);
+  writeDb.pragma('journal_mode = WAL');
   // 加载所有学科表名（排除 sqlite_ 内部表和视图）
   表名列表 = db.prepare(
     "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
@@ -308,8 +312,11 @@ router.post('/manage/delete', adminAuth, (req, res) => {
   }
 
   try {
-    const stmt = db.prepare(`DELETE FROM "${domain}" WHERE 词语 = ?`);
-    const deleteMany = db.transaction((list) => {
+    if (!writeDb) {
+      return res.status(500).json({ error: '数据库可写连接未初始化' });
+    }
+    const stmt = writeDb.prepare(`DELETE FROM "${domain}" WHERE 词语 = ?`);
+    const deleteMany = writeDb.transaction((list) => {
       let deleted = 0;
       for (const w of list) {
         const info = stmt.run(w);

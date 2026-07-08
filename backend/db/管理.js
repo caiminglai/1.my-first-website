@@ -51,26 +51,35 @@ function batchCreateTerms(items) {
   let failed = 0;
   const errors = [];
 
-  for (const item of items) {
-    try {
-      const insert = prepare(
-        `INSERT INTO 词条 (词条ID, 学科, 名称, 翻译, 本质, 提示, 跨学科别名, 热度) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      );
-      const result = insert.run(
-        item.id,
-        item.discipline,
-        item.name,
-        item.translation || "",
-        item.essence || "",
-        item.tip || "",
-        JSON.stringify(item.aliases || []),
-        item.hot ? 1 : 0,
-      );
-      success++;
-    } catch (err) {
-      failed++;
-      errors.push({ id: item.id, error: err && err.message ? err.message : String(err) });
+  exec("BEGIN TRANSACTION");
+  try {
+    const insert = prepare(
+      `INSERT INTO 词条 (词条ID, 学科, 名称, 翻译, 本质, 提示, 跨学科别名, 热度) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    );
+    for (const item of items) {
+      try {
+        insert.run(
+          item.id,
+          item.discipline,
+          item.name,
+          item.translation || "",
+          item.essence || "",
+          item.tip || "",
+          JSON.stringify(item.aliases || []),
+          item.hot ? 1 : 0,
+        );
+        success++;
+      } catch (err) {
+        failed++;
+        errors.push({ id: item.id, error: err && err.message ? err.message : String(err) });
+        exec("ROLLBACK");
+        return { success, failed, errors };
+      }
     }
+    exec("COMMIT");
+  } catch (err) {
+    try { exec("ROLLBACK"); } catch {}
+    throw err;
   }
 
   return { success, failed, errors };
