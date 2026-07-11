@@ -12,6 +12,7 @@
     "sync:to-obsidian": "node scripts/数据库同步到Obsidian.js",
     "sync:from-obsidian": "node scripts/Obsidian同步到数据库.js",
     "sync:meilisearch": "node scripts/同步到Meilisearch.js",
+    "sync:neo4j": "node db/全量迁移到Neo4j.js",
     "test": "vitest run"
   },
   "dependencies": {
@@ -21,7 +22,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "meilisearch": "^0.58.0",
-    "neo4j-driver": "^6.2.0",
+    "neo4j-driver": "^4.4.0",
     "openai": "^4.47.1",
     "sql.js": "^1.14.1"
   },
