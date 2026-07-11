@@ -3,8 +3,8 @@
 > **统一入口**：`backend/server.js`
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
-> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Meilisearch 全文搜索引擎
-> **更新日期**：2026-07-04
+> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Neo4j 4.4.40 图数据库 + Meilisearch 全文搜索引擎
+> **更新日期**：2026-07-11
 
 ---
 
@@ -21,13 +21,15 @@
 9. [概念抗体](#9-概念抗体)
 10. [高薪技术岗](#10-高薪技术岗)
 11. [用户提交](#11-用户提交)
-12. [统计与健康检查](#12-统计与健康检查)
-13. [管理后台 - 词条](#13-管理后台---词条)
-14. [管理后台 - 学科](#14-管理后台---学科)
-15. [管理后台 - 备份与仪表盘](#15-管理后台---备份与仪表盘)
-16. [管理后台 - 内容模块](#16-管理后台---内容模块)
-17. [前端调用约定](#17-前端调用约定)
-18. [路由文件索引](#18-路由文件索引)
+12. [学科映射管理](#12-学科映射管理)
+13. [词条纠错建议](#13-词条纠错建议)
+14. [统计与健康检查](#14-统计与健康检查)
+15. [管理后台 - 词条](#15-管理后台---词条)
+16. [管理后台 - 学科](#16-管理后台---学科)
+17. [管理后台 - 备份与仪表盘](#17-管理后台---备份与仪表盘)
+18. [管理后台 - 内容模块](#18-管理后台---内容模块)
+19. [前端调用约定](#19-前端调用约定)
+20. [路由文件索引](#20-路由文件索引)
 
 ---
 
@@ -36,15 +38,17 @@
 | 路由前缀 | 功能 | 状态 | 鉴权 |
 |---------|------|------|------|
 | `/api/v1/terms` | 词条查询、搜索、学科、详情、CRUD | ✅ 活跃 | 部分需要 |
-| `/api/v1/graph` | 知识图谱节点与关系 | ✅ 活跃 | 公开 |
+| `/api/v1/graph` | 知识图谱节点与关系（Neo4j） | ✅ 活跃 | 公开 |
 | `/api/v1/comparisons` | 概念对比 | ✅ 活跃 | 部分需要 |
 | `/api/v1/scenarios` | 情景还原 | ✅ 活跃 | 公开 |
 | `/api/v1/career` | 职业解构 | ✅ 活跃 | 部分需要 |
 | `/api/v1/industry` | 产业岗位 | ✅ 活跃 | 部分需要 |
 | `/api/v1/antibody` | 概念抗体 | ✅ 活跃 | 部分需要 |
 | `/api/v1/jobs` | 高薪技术岗（分类、岗位、阶段、技能） | ✅ 活跃 | 部分需要 |
-| `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 | ✅ 活跃 | 公开 |
 | `/api/v1/submissions` | 用户提交同物异名 | ✅ 活跃 | 部分需要 |
+| `/api/v1/discipline-mapping` | 学科子领域映射管理（19表→10学科） | ✅ 活跃 | 部分需要 |
+| `/api/v1/corrections` | 词条纠错建议 | ✅ 活跃 | 部分需要 |
+| `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 | ✅ 活跃 | 公开 |
 | `/api/v1/admin` | 管理后台（需 `x-admin-token`） | ✅ 活跃 | 需要 |
 | `/api/v1/ai` | AI 问答（RAG + LLM） | ✅ 活跃 | 需要 |
 
@@ -141,6 +145,15 @@
 | `CREATE_SKILL_ERROR` | 500 | 创建技能失败 |
 | `ANTIBODY_ERROR` | 500 | 抗体数据操作失败 |
 | `CAREER_ERROR` | 500 | 职业数据操作失败 |
+| `MAPPING_NOT_FOUND` | 404 | 学科映射不存在 |
+| `MAPPING_CREATE_ERROR` | 500 | 创建学科映射失败 |
+| `MAPPING_UPDATE_ERROR` | 500 | 更新学科映射失败 |
+| `MAPPING_DELETE_ERROR` | 500 | 删除学科映射失败 |
+| `CORRECTION_NOT_FOUND` | 404 | 纠错建议不存在 |
+| `CORRECTION_CREATE_ERROR` | 500 | 创建纠错建议失败 |
+| `CORRECTION_APPROVE_ERROR` | 500 | 审核纠错建议失败 |
+| `NEO4J_CONNECTION_ERROR` | 500 | Neo4j 数据库连接失败 |
+| `NEO4J_SYNC_ERROR` | 500 | Neo4j 数据同步失败 |
 
 ### 2.5 管理接口鉴权
 
@@ -294,11 +307,21 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 4. 知识图谱
 
+> 数据源：Neo4j 4.4.40 图数据库（数据由 SQLite 同步而来）
+> 数据规模：19,703 词条节点、10 学科节点、18,000+ 关系
+
 ### 4.1 图谱节点
 
 **接口**：`GET /api/v1/graph/nodes`
 
-**说明**：返回所有图谱节点
+**说明**：返回所有图谱节点（Neo4j 查询）
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `discipline` | string | 否 | 按学科过滤 |
+| `limit` | number | 否 | 返回数量限制 |
 
 ---
 
@@ -306,7 +329,36 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **接口**：`GET /api/v1/graph/links`
 
-**说明**：返回所有节点间的关系
+**说明**：返回所有节点间的关系（Neo4j 查询）
+
+---
+
+### 4.3 节点邻居查询
+
+**接口**：`GET /api/v1/graph/:id/neighbors`
+
+**说明**：查询指定节点的邻居节点（Neo4j 图遍历）
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `depth` | number | 否 | 遍历深度，默认 1 |
+
+---
+
+### 4.4 最短路径查询
+
+**接口**：`GET /api/v1/graph/path`
+
+**说明**：查询两个节点间的最短路径（Neo4j 图算法）
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `from` | string | 是 | 起点节点 ID |
+| `to` | string | 是 | 终点节点 ID |
 
 ---
 
@@ -791,9 +843,193 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 12. 统计与健康检查
+## 12. 学科映射管理
 
-### 12.1 全局统计
+> 管理 19 个学科词库表到 10 个核心学科的映射关系
+
+### 12.1 获取全部映射
+
+**接口**：`GET /api/v1/discipline-mapping`
+
+**说明**：返回所有学科子领域到核心学科的映射关系
+
+**返回**：
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "math-001",
+      "sub_discipline": "数学",
+      "core_discipline": "数学",
+      "description": "..."
+    }
+  ]
+}
+```
+
+---
+
+### 12.2 按核心学科查询
+
+**接口**：`GET /api/v1/discipline-mapping/core/:discipline`
+
+**说明**：查询某个核心学科下包含的所有子领域
+
+**可能错误**：`NOT_FOUND`
+
+---
+
+### 12.3 创建映射（管理）
+
+**接口**：`POST /api/v1/discipline-mapping`
+
+**鉴权**：需要 `x-admin-token`
+
+**请求体**：
+
+```json
+{
+  "sub_discipline": "子领域名称",
+  "core_discipline": "核心学科名称",
+  "description": "描述说明"
+}
+```
+
+**可能错误**：`MISSING_FIELDS`, `DUPLICATE_KEY`
+
+---
+
+### 12.4 更新映射（管理）
+
+**接口**：`PUT /api/v1/discipline-mapping/:id`
+
+**鉴权**：需要 `x-admin-token`
+
+**可能错误**：`MISSING_ID`, `NOT_FOUND`, `NO_FIELDS`
+
+---
+
+### 12.5 删除映射（管理）
+
+**接口**：`DELETE /api/v1/discipline-mapping/:id`
+
+**鉴权**：需要 `x-admin-token`
+
+**可能错误**：`MISSING_ID`, `NOT_FOUND`
+
+---
+
+## 13. 词条纠错建议
+
+> 社区协作第二层：用户提交词条纠错建议，管理员审核后生效
+
+### 13.1 提交纠错建议
+
+**接口**：`POST /api/v1/corrections`
+
+**说明**：用户提交词条纠错或补充建议
+
+**请求体**：
+
+```json
+{
+  "term_id": "词条ID",
+  "correction_type": "error",
+  "field_name": "翻译",
+  "current_value": "当前内容",
+  "suggested_value": "建议内容",
+  "reason": "纠错理由",
+  "contact": "联系方式（可选）"
+}
+```
+
+**correction_type 可选值**：`error`（错误纠正）/ `improvement`（改进建议）/ `addition`（内容补充）
+
+**可能错误**：`MISSING_FIELDS`, `TERM_NOT_FOUND`
+
+---
+
+### 15.2 我的纠错记录
+
+**接口**：`GET /api/v1/corrections/mine`
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `contact` | string | 是 | 联系方式标识 |
+
+---
+
+### 15.3 管理列表（管理）
+
+**接口**：`GET /api/v1/corrections/admin`
+
+**鉴权**：需要 `x-admin-token`
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `status` | string | 否 | 状态过滤：pending/approved/rejected |
+| `page` | number | 否 | 页码，默认 1 |
+| `pageSize` | number | 否 | 每页数量，默认 20 |
+
+---
+
+### 15.4 审核通过（管理）
+
+**接口**：`POST /api/v1/corrections/:id/approve`
+
+**鉴权**：需要 `x-admin-token`
+
+**说明**：审核通过并自动更新词条内容，同步到 Neo4j
+
+**请求体**：
+
+```json
+{
+  "review_note": "审核备注"
+}
+```
+
+**可能错误**：`MISSING_ID`, `NOT_FOUND`
+
+---
+
+### 15.5 审核拒绝（管理）
+
+**接口**：`POST /api/v1/corrections/:id/reject`
+
+**鉴权**：需要 `x-admin-token`
+
+**请求体**：
+
+```json
+{
+  "reject_reason": "拒绝理由"
+}
+```
+
+**可能错误**：`MISSING_ID`, `NOT_FOUND`
+
+---
+
+### 15.6 状态统计（管理）
+
+**接口**：`GET /api/v1/corrections/admin/stats`
+
+**鉴权**：需要 `x-admin-token`
+
+**说明**：返回各状态的纠错建议数量统计
+
+---
+
+## 14. 统计与健康检查
+
+### 16.1 全局统计
 
 **接口**：`GET /api/v1/stats`
 
@@ -801,7 +1037,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 12.2 健康检查
+### 16.2 健康检查
 
 **接口**：`GET /api/v1/stats/health`
 
@@ -820,7 +1056,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 12.3 提交用户反馈
+### 16.3 提交用户反馈
 
 **接口**：`POST /api/v1/stats/feedback`
 
@@ -841,11 +1077,11 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 13. 管理后台 - 词条
+## 15. 管理后台 - 词条
 
 > 所有接口均需要 `x-admin-token`
 
-### 13.1 词条管理列表
+### 15.1 词条管理列表
 
 **接口**：`GET /api/v1/admin/terms`
 
@@ -860,7 +1096,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.2 批量创建词条
+### 15.2 批量创建词条
 
 **接口**：`POST /api/v1/admin/terms`
 
@@ -884,7 +1120,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.3 更新单个词条
+### 15.3 更新单个词条
 
 **接口**：`PUT /api/v1/admin/terms/:id`
 
@@ -894,13 +1130,13 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.4 删除单个词条
+### 15.4 删除单个词条
 
 **接口**：`DELETE /api/v1/admin/terms/:id`
 
 ---
 
-### 13.5 词条历史记录
+### 15.5 词条历史记录
 
 **接口**：`GET /api/v1/admin/terms/:id/history`
 
@@ -908,7 +1144,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.6 导出CSV
+### 15.6 导出CSV
 
 **接口**：`GET /api/v1/admin/terms/export/csv`
 
@@ -920,7 +1156,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.7 导入CSV
+### 15.7 导入CSV
 
 **接口**：`POST /api/v1/admin/terms/import/csv`
 
@@ -934,17 +1170,17 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 14. 管理后台 - 学科
+## 16. 管理后台 - 学科
 
 > 所有接口均需要 `x-admin-token`
 
-### 14.1 学科列表
+### 16.1 学科列表
 
 **接口**：`GET /api/v1/admin/disciplines`
 
 ---
 
-### 14.2 创建学科
+### 16.2 创建学科
 
 **接口**：`POST /api/v1/admin/disciplines`
 
@@ -964,7 +1200,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 14.3 更新单个学科
+### 16.3 更新单个学科
 
 **接口**：`PUT /api/v1/admin/disciplines/:id`
 
@@ -972,7 +1208,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 14.4 批量更新排序
+### 16.4 批量更新排序
 
 **接口**：`PUT /api/v1/admin/disciplines/order`
 
@@ -991,7 +1227,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 14.5 删除学科
+### 16.5 删除学科
 
 **接口**：`DELETE /api/v1/admin/disciplines/:id`
 
@@ -1001,11 +1237,11 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 15. 管理后台 - 备份与仪表盘
+## 17. 管理后台 - 备份与仪表盘
 
 > 所有接口均需要 `x-admin-token`
 
-### 15.1 创建备份
+### 17.1 创建备份
 
 **接口**：`POST /api/v1/admin/backup`
 
@@ -1025,7 +1261,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 15.2 备份列表
+### 17.2 备份列表
 
 **接口**：`GET /api/v1/admin/backups`
 
@@ -1033,7 +1269,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 15.3 仪表盘统计
+### 17.3 仪表盘统计
 
 **接口**：`GET /api/v1/admin/dashboard`
 
@@ -1041,13 +1277,13 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 15.4 数据质量报告
+### 17.4 数据质量报告
 
 **接口**：`GET /api/v1/admin/data-quality`
 
 ---
 
-### 15.5 数据库迁移
+### 17.5 数据库迁移
 
 **接口**：`POST /api/v1/admin/migrate`
 
@@ -1057,7 +1293,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 16. 管理后台 - 内容模块
+## 18. 管理后台 - 内容模块
 
 > 所有接口均需要 `x-admin-token`
 
@@ -1079,7 +1315,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 17. 前端调用约定
+## 19. 前端调用约定
 
 前端采用两层 API 抽象：
 
@@ -1103,7 +1339,7 @@ const categories = await getJobCategories()
 
 ---
 
-## 18. 路由文件索引
+## 20. 路由文件索引
 
 | 文件 | 挂载路径 | 说明 |
 |------|---------|------|
@@ -1117,10 +1353,12 @@ const categories = await getJobCategories()
 | [岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
 | [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
 | [提交.js](file:///e:/website/1.my-first-website/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
+| [学科映射.js](file:///e:/website/1.my-first-website/backend/routes/学科映射.js) | `/api/v1/discipline-mapping` | 学科子领域映射管理（19表→10学科） |
+| [纠错建议.js](file:///e:/website/1.my-first-website/backend/routes/纠错建议.js) | `/api/v1/corrections` | 词条纠错建议 |
 | [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
 | [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
 | [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
 
 ---
 
-*更新日期：2026-07-04*
+*更新日期：2026-07-11*
