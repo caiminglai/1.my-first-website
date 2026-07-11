@@ -74,6 +74,9 @@ data/backups/
 # Meilisearch 搜索引擎索引数据（运行时自动生成，无需提交）
 backend/meili_data/
 
+# Neo4j 图数据库数据目录（运行时生成，体积大，不提交）
+data/neo4j/
+
 # Meilisearch 可执行文件（二进制，不纳入 Git 管理）
 backend/bin/
 
