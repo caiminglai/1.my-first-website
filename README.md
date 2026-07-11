@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 前端：React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
-- 后端：Express.js + better-sqlite3 + Meilisearch + OpenAI API
+- 后端：Express.js + better-sqlite3（主库）+ Neo4j 4.4（图数据库）+ Meilisearch + OpenAI API
 - 部署：Alibaba Cloud Linux + Nginx + PM2
 
 ## 目录结构
@@ -26,9 +26,10 @@
 │   ├── utils/          # 工具函数
 │   └── server.js       # 入口
 ├── data/               # 数据库文件
-│   ├── 同物异名.db     # 主数据库 (24 表 / 17,206 条)
+│   ├── 同物异名.db     # 主数据库 SQLite（精加工工作台）
 │   ├── 学科词库.db     # 学科词库 (19 表 / 8,198 条)
-│   └── 语义词典.db     # 语义词典 (3 表 / 8,598 条)
+│   ├── 语义词典.db     # 语义词典 (3 表 / 8,598 条)
+│   └── neo4j/          # Neo4j 图数据库数据目录
 └── docs/               # 项目文档
 ```
 
@@ -38,6 +39,10 @@
 # 后端
 cd backend && npm install && npm start
 # → http://localhost:3000
+
+# Neo4j 图数据库（需先启动）
+# 确保已安装 Neo4j 4.4 并配置 .env 中的 NEO4J_PASSWORD
+# 首次需运行数据迁移：cd backend && npm run sync:neo4j
 
 # 前端（新终端）
 cd app && npm install && npm run dev
