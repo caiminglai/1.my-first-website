@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
   rejectSubmission: (id: number) => `/api/v1/submissions/admin/${id}/reject`,
   feedback: '/api/v1/stats/feedback',
   health: '/api/v1/stats/health',
+  stats: '/api/v1/stats',
   jobs: '/api/v1/jobs',
   jobById: (id: number) => `/api/v1/jobs/${id}`,
   jobCategories: '/api/v1/jobs/categories',

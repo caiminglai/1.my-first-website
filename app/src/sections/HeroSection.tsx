@@ -3,41 +3,45 @@ import { useNavigate } from 'react-router'
 import { Shield, Briefcase, Layers } from 'lucide-react'
 import { useSmoothScroll } from '@/hooks/useSmoothScroll'
 import { useDisciplines } from '@/hooks/useDisciplines'
-import { useTerms } from '@/hooks/useTerms'
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
-      delayChildren: 0.1,
-    },
-  },
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.8,
-      ease: 'easeOut',
-    },
-  },
-}
+import { useStats } from '@/hooks/useStats'
 
 export default function HeroSection() {
   const { scrollTo } = useSmoothScroll()
   const navigate = useNavigate()
   const { disciplines } = useDisciplines()
-  const { terms } = useTerms()
+  const { stats } = useStats()
 
-  const stats = [
-    { number: `${terms.length}+`, label: '词条收录' },
+  // 使用后端返回的真实总数，如果加载失败则 fallback 到估算值
+  const totalTerms = stats?.totalTerms || 9000
+
+  const statsDisplay = [
+    { number: `${totalTerms}+`, label: '词条收录' },
     { number: String(disciplines.length), label: '学科领域' },
     { number: '\u221e', label: '跨界连接' },
   ]
+
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+        delayChildren: 0.1,
+      },
+    },
+  }
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: 'easeOut',
+      },
+    },
+  }
 
   return (
     <section className="pt-[100px] sm:pt-[120px] pb-12 sm:pb-20 px-4 lg:px-6">
@@ -74,7 +78,7 @@ export default function HeroSection() {
           variants={itemVariants}
           className="flex items-center justify-center gap-6 sm:gap-8 md:gap-[60px] mt-8 sm:mt-10"
         >
-          {stats.map((stat) => (
+          {statsDisplay.map((stat) => (
             <div key={stat.label} className="text-center">
               <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-warm-accent">
                 {stat.number}

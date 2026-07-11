@@ -2,9 +2,33 @@ const { prepare } = require("../db/入口");
 const { markDirty } = require("../db/入口");
 const cache = require("./缓存");
 
+// 19个学科分表名称
+const SUBJECT_TABLES = [
+  '世界哲学', '化学化工', '医药医学', '土木工程', '教育教学',
+  '数学科学', '机械工程', '水利工程', '法律诉讼', '物理科学',
+  '电子工程', '矿业勘探', '社会科学', '管理科学', '船舶工程',
+  '计算机业', '通信工程', '金融财经', '钢铁冶金'
+];
+
 function getStats() {
   return cache.remember("stats_summary", () => {
-    const totalTerms = prepare("SELECT COUNT(*) as c FROM 词条").get().c;
+    // 主词条表数量
+    const mainTerms = prepare("SELECT COUNT(*) as c FROM 词条").get().c;
+    
+    // 汇总19张学科分表数量
+    let subjectTerms = 0;
+    SUBJECT_TABLES.forEach(tableName => {
+      try {
+        const count = prepare(`SELECT COUNT(*) as c FROM "${tableName}"`).get().c;
+        subjectTerms += count;
+      } catch (e) {
+        // 表不存在时跳过
+      }
+    });
+    
+    // 总词条数 = 主表 + 学科分表
+    const totalTerms = mainTerms + subjectTerms;
+    
     const hotTerms = prepare(
       "SELECT COUNT(*) as c FROM 词条 WHERE 热度 = 1",
     ).get().c;
@@ -20,6 +44,8 @@ function getStats() {
 
     return {
       totalTerms,
+      mainTerms,
+      subjectTerms,
       hotTerms,
       totalLinks,
       totalComparisons,

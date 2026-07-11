@@ -218,6 +218,15 @@ export async function getGraphData(): Promise<GraphDataResponse> {
   return { nodes, links }
 }
 
+// ============= 统计数据 =============
+
+/**
+ * 获取系统统计数据（词条总数、学科数等）
+ */
+export async function getStats() {
+  return apiClient.get(API_ENDPOINTS.stats)
+}
+
 // ============= 概念对比 =============
 
 /**
