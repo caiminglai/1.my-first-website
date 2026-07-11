@@ -66,6 +66,9 @@ backend/logs/
 *.db-journal
 
 # 例外：主数据库体积很小，纳入 Git 作为安全快照
+!data/同物异名.db
+!data/学科词库.db
+!data/语义词典.db
 
 
 # 数据库备份目录（含历史备份）
