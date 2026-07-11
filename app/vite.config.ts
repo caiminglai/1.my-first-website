@@ -40,13 +40,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-hook-form'],
-          'router': ['react-router', 'react-router-dom'],
-          'ui-vendor': ['framer-motion', 'lucide-react', 'recharts', 'sonner'],
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router'],
+          'ui-vendor': ['framer-motion', 'lucide-react', 'sonner'],
           'd3-vendor': ['d3'],
-          'radix-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-select', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip', '@radix-ui/react-accordion', '@radix-ui/react-slot'],
-          'date-vendor': ['date-fns', 'react-day-picker'],
-          'form-vendor': ['@hookform/resolvers', 'zod', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          'radix-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-tooltip', '@radix-ui/react-slot'],
+          'form-vendor': ['class-variance-authority', 'clsx', 'tailwind-merge'],
         },
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
