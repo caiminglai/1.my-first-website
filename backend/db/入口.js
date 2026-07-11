@@ -130,6 +130,45 @@ function 执行迁移() {
   } catch (错误) {
     console.log("[数据库迁移] 学科.描述 已存在或无需迁移", 错误.message);
   }
+
+  // ---- 学科子领域映射表 ----
+  try {
+    数据库实例.exec(`
+      CREATE TABLE IF NOT EXISTS 学科子领域映射 (
+        子领域名称 TEXT PRIMARY KEY,
+        核心学科 TEXT NOT NULL,
+        词条数量 INTEGER DEFAULT 0,
+        显示顺序 INTEGER DEFAULT 99,
+        描述 TEXT DEFAULT '',
+        创建时间 DATETIME DEFAULT CURRENT_TIMESTAMP,
+        更新时间 DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("[数据库迁移] 学科子领域映射表 已就绪");
+  } catch (错误) {
+    console.log("[数据库迁移] 学科子领域映射表 创建失败", 错误.message);
+  }
+
+  // ---- 词条纠错建议表 ----
+  try {
+    数据库实例.exec(`
+      CREATE TABLE IF NOT EXISTS 词条纠错建议 (
+        建议ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        词条ID TEXT,
+        词条名称 TEXT,
+        纠错类型 TEXT DEFAULT '学科归属',
+        建议内容 TEXT,
+        提交者标识 TEXT DEFAULT '匿名',
+        状态 TEXT DEFAULT '待审核',
+        审核备注 TEXT,
+        审核时间 DATETIME,
+        创建时间 DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log("[数据库迁移] 词条纠错建议表 已就绪");
+  } catch (错误) {
+    console.log("[数据库迁移] 词条纠错建议表 创建失败", 错误.message);
+  }
 }
 
 // ==================== 初始化 ====================
