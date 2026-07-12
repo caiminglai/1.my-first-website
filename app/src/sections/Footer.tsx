@@ -36,8 +36,8 @@ export default function Footer() {
           </div>
           <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
             <Shield className="w-3.5 h-3.5 text-gray-500" />
-            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=61102502000056" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
-              陕公网安备61102502000056号
+            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=your_police_record_code" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
+              your_police_record_number
             </a>
           </div>
         </div>
