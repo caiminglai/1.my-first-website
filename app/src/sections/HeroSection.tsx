@@ -62,7 +62,7 @@ export default function HeroSection() {
           variants={itemVariants}
           className="text-3xl sm:text-4xl md:text-[56px] font-bold text-warm-dark dark:text-warm-text leading-tight tracking-tight font-display hero-title"
         >
-          your_name
+          科学不装
         </motion.h1>
 
         {/* 副标题 */}
